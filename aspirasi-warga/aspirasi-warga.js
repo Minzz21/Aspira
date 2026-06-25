@@ -115,18 +115,19 @@ function eksporLaporan() {
   showToast('PDF Laporan sedang dibuat...');
 }
 
-/* Audio Player Simulation */
+/* Audio Player Real Implementation */
 let isPlaying = false;
-let audioProgress = 0;
-let audioTimer;
+let currentAudio = null;
 
 function resetAudio() {
   isPlaying = false;
-  audioProgress = 0;
-  clearInterval(audioTimer);
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
   document.getElementById('play-icon').className = 'fa-solid fa-play ml-0.5';
   document.getElementById('audio-current').textContent = '0:00';
-  document.getElementById('audio-total').textContent = `0:${activeReport.duration}`;
+  document.getElementById('audio-total').textContent = `0:${activeReport.duration || 0}`;
   generateVisualizer();
 }
 
@@ -142,29 +143,51 @@ function generateVisualizer() {
 }
 
 function toggleAudio() {
+  if (!activeReport || !activeReport.audioUrl) {
+    showToast("Rekaman suara tidak tersedia untuk laporan ini.");
+    return;
+  }
+
+  // Inisialisasi audio jika belum ada atau berganti laporan
+  if (!currentAudio || currentAudio.src !== activeReport.audioUrl) {
+    if (currentAudio) currentAudio.pause();
+    currentAudio = new Audio(activeReport.audioUrl);
+    
+    currentAudio.addEventListener('ended', () => {
+        resetAudio();
+    });
+
+    currentAudio.addEventListener('timeupdate', () => {
+        const currentTime = Math.floor(currentAudio.currentTime);
+        document.getElementById('audio-current').textContent = `0:${currentTime.toString().padStart(2, '0')}`;
+        updateVisualizerColors();
+    });
+  }
+
   isPlaying = !isPlaying;
   document.getElementById('play-icon').className = isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play ml-0.5';
   
-  if(isPlaying) {
-    audioTimer = setInterval(() => {
-      audioProgress++;
-      if(audioProgress >= activeReport.duration) {
-        resetAudio();
-      } else {
-        document.getElementById('audio-current').textContent = `0:${audioProgress.toString().padStart(2, '0')}`;
-        updateVisualizerColors();
-      }
-    }, 1000);
+  if (isPlaying) {
+    currentAudio.play().catch(e => {
+        console.error("Gagal memutar audio:", e);
+        showToast("Browser memblokir pemutaran audio otomatis.");
+        isPlaying = false;
+        document.getElementById('play-icon').className = 'fa-solid fa-play ml-0.5';
+    });
   } else {
-    clearInterval(audioTimer);
+    currentAudio.pause();
   }
 }
 
 function updateVisualizerColors() {
-  const pct = audioProgress / activeReport.duration;
+  if (!currentAudio) return;
+  const duration = currentAudio.duration && !isNaN(currentAudio.duration) && currentAudio.duration > 0 
+                   ? currentAudio.duration : (activeReport.duration || 1);
+  const pct = currentAudio.currentTime / duration;
   const activeBarIndex = Math.floor(pct * 40);
   for(let i=0; i<40; i++) {
     const bar = document.getElementById(`bar-${i}`);
+    if (!bar) continue;
     if(i < activeBarIndex) bar.className = 'vis-bar played';
     else if(i === activeBarIndex) bar.className = 'vis-bar active';
     else bar.className = 'vis-bar';
