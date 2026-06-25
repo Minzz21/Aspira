@@ -1,0 +1,50 @@
+/* login.css */
+
+.login-banner {
+  box-shadow: inset -20px 0 50px -20px rgba(0,0,0,0.5);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.login-input {
+  width: 100%;
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #334155;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #1e4d2b;
+  box-shadow: 0 0 0 3px rgba(30, 77, 43, 0.1);
+}
+
+.login-input::placeholder {
+  color: #cbd5e1;
+}
+
+/* Toast Animation */
+.toast-animate {
+  animation: slideInDown 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
