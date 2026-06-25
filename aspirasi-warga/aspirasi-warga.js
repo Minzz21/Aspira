@@ -125,9 +125,10 @@ function resetAudio() {
     currentAudio.pause();
     currentAudio.currentTime = 0;
   }
+  const duration = activeReport.durationSeconds || activeReport.duration || 0;
   document.getElementById('play-icon').className = 'fa-solid fa-play ml-0.5';
   document.getElementById('audio-current').textContent = '0:00';
-  document.getElementById('audio-total').textContent = `0:${activeReport.duration || 0}`;
+  document.getElementById('audio-total').textContent = `0:${duration.toString().padStart(2, '0')}`;
   generateVisualizer();
 }
 
@@ -181,8 +182,9 @@ function toggleAudio() {
 
 function updateVisualizerColors() {
   if (!currentAudio) return;
+  const repDuration = activeReport.durationSeconds || activeReport.duration || 1;
   const duration = currentAudio.duration && !isNaN(currentAudio.duration) && currentAudio.duration > 0 
-                   ? currentAudio.duration : (activeReport.duration || 1);
+                   ? currentAudio.duration : repDuration;
   const pct = currentAudio.currentTime / duration;
   const activeBarIndex = Math.floor(pct * 40);
   for(let i=0; i<40; i++) {
