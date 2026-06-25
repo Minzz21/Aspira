@@ -143,6 +143,26 @@ function generateVisualizer() {
   vis.innerHTML = barsHtml;
 }
 
+function base64ToBlobUrl(dataUrl) {
+  try {
+    const parts = dataUrl.split(',');
+    const contentType = parts[0].split(':')[1].split(';')[0];
+    const b64Data = parts[1];
+    
+    const byteCharacters = atob(b64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], {type: contentType});
+    return URL.createObjectURL(blob);
+  } catch (e) {
+    console.error("Gagal convert base64 ke blob:", e);
+    return dataUrl; // fallback
+  }
+}
+
 function toggleAudio() {
   if (!activeReport || !activeReport.audioUrl) {
     showToast("Rekaman suara tidak tersedia untuk laporan ini.");
@@ -150,9 +170,16 @@ function toggleAudio() {
   }
 
   // Inisialisasi audio jika belum ada atau berganti laporan
-  if (!currentAudio || currentAudio.src !== activeReport.audioUrl) {
-    if (currentAudio) currentAudio.pause();
-    currentAudio = new Audio(activeReport.audioUrl);
+  if (!currentAudio || currentAudio.datasetId !== activeReport.id) {
+    if (currentAudio) {
+        currentAudio.pause();
+        if (currentAudio.src.startsWith('blob:')) URL.revokeObjectURL(currentAudio.src);
+    }
+    
+    // Ubah base64 string yang sangat panjang menjadi file virtual (Blob) agar browser tidak error
+    const blobUrl = base64ToBlobUrl(activeReport.audioUrl);
+    currentAudio = new Audio(blobUrl);
+    currentAudio.datasetId = activeReport.id;
     
     currentAudio.addEventListener('ended', () => {
         resetAudio();
