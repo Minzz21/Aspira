@@ -1,0 +1,70 @@
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Sidebar */
+.sidebar-item.active {
+  background-color: #2d6a2d;
+  border-left: 4px solid #7fc97f;
+}
+.sidebar-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Progress Bar */
+.progress-bar {
+  height: 6px;
+  border-radius: 9999px;
+  background: #e5e7eb;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 1s ease;
+}
+
+/* Badges */
+.badge-prioritas {
+  background: #ef4444;
+}
+.badge-sensus {
+  background: #1e4d2b;
+  border: 1px solid #4ade80;
+  color: #4ade80;
+}
+.badge-bulan {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+/* Status Colors */
+.status-kritis {
+  color: #ef4444;
+}
+.status-proses {
+  color: #f59e0b;
+}
+.status-selesai {
+  color: #22c55e;
+}
+
+/* Card Hover Effect */
+.card-hover {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}

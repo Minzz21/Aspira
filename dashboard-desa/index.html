@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ASPIRA AI - Dashboard Desa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="w-56 flex flex-col bg-[#1e4d2b] text-white flex-shrink-0">
+    <div class="px-5 py-5 border-b border-green-800">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white rounded-md flex items-center justify-center">
+          <span class="text-[#1e4d2b] font-bold text-xs">AI</span>
+        </div>
+        <div>
+          <p class="font-bold text-sm leading-tight">ASPIRA AI</p>
+          <p class="text-green-300 text-[10px]">Governance Portal</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+      <a href="index.html" id="nav-dashboard" class="sidebar-item active flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer">
+        <i class="fa-solid fa-table-cells-large w-4 text-center"></i>
+        Dashboard Desa
+      </a>
+      <a href="../profil-desa/profil-desa.html" id="nav-profil" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer">
+        <i class="fa-solid fa-building-columns w-4 text-center"></i>
+        Profil Desa &amp; UMKM
+      </a>
+      <a href="../aspirasi-warga/aspirasi-warga.html" id="nav-aspirasi" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer">
+        <i class="fa-regular fa-comment-dots w-4 text-center"></i>
+        Aspirasi Warga
+      </a>
+      <a href="../whitelist-warga/whitelist-warga.html" id="nav-whitelist" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer">
+        <i class="fa-solid fa-shield-halved w-4 text-center"></i>
+        Whitelist Warga
+      </a>
+      <a href="../pengaturan/pengaturan.html" id="nav-pengaturan" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer">
+        <i class="fa-solid fa-gear w-4 text-center"></i>
+        Pengaturan
+      </a>
+    </nav>
+
+    <div class="px-3 pb-3 border-t border-green-800 pt-3 space-y-1">
+      <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer text-green-300">
+        <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
+        Keluar
+      </a>
+      <div class="flex items-center gap-3 px-3 py-2 mt-1">
+        <img src="https://ui-avatars.com/api/?name=Admin+Utama&background=4ade80&color=1e4d2b&size=40" class="w-9 h-9 rounded-full" alt="Admin"/>
+        <div>
+          <p class="text-sm font-semibold leading-tight">Admin Utama</p>
+          <p class="text-green-300 text-[10px]">Administrator</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 overflow-y-auto bg-gray-50">
+    <div class="p-6 max-w-5xl mx-auto space-y-5">
+
+      <!-- Header -->
+      <div>
+        <h1 class="text-xl font-bold text-gray-800">Ringkasan Eksekutif Desa</h1>
+        <p class="text-gray-500 text-sm mt-0.5">Laporan real-time tata kelola dan pemberdayaan ekonomi warga.</p>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="grid grid-cols-3 gap-4">
+
+        <!-- Card 1: Total Aspirasi -->
+        <div class="card-hover bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div class="flex justify-between items-start mb-4">
+            <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+              <i class="fa-solid fa-bullhorn text-[#1e4d2b] text-sm"></i>
+            </div>
+            <span class="badge-bulan text-[10px] font-semibold px-2 py-0.5 rounded-full">+12% BULAN INI</span>
+          </div>
+          <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">Total Aspirasi Desa</p>
+          <p class="text-3xl font-bold text-gray-800 mt-1">1,284</p>
+        </div>
+
+        <!-- Card 2: Laporan Kritis -->
+        <div class="card-hover bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div class="flex justify-between items-start mb-4">
+            <div class="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+              <i class="fa-solid fa-triangle-exclamation text-red-500 text-sm"></i>
+            </div>
+            <span class="badge-prioritas text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">PRIORITAS</span>
+          </div>
+          <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">Laporan Kritis</p>
+          <p class="text-3xl font-bold text-gray-800 mt-1">18</p>
+        </div>
+
+        <!-- Card 3: Total UMKM -->
+        <div class="card-hover bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div class="flex justify-between items-start mb-4">
+            <div class="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center">
+              <i class="fa-solid fa-store text-amber-600 text-sm"></i>
+            </div>
+            <span class="text-[#1e4d2b] border border-green-600 text-[10px] font-semibold px-2 py-0.5 rounded-full">SENSUS 2024</span>
+          </div>
+          <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">Total Pelaku UMKM</p>
+          <p class="text-3xl font-bold text-gray-800 mt-1">342</p>
+        </div>
+      </div>
+
+      <!-- ASPIRASI PER KATEGORI -->
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex justify-between items-start mb-1">
+          <div>
+            <h2 class="font-semibold text-gray-800">Aspirasi per Kategori</h2>
+            <p class="text-gray-400 text-xs mt-0.5">Distribusi laporan warga berdasarkan sektor strategis</p>
+          </div>
+          <a href="#" class="text-[#1e4d2b] text-sm font-medium hover:underline">Lihat Detail →</a>
+        </div>
+
+        <div class="grid grid-cols-2 gap-x-10 gap-y-5 mt-5">
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-semibold text-gray-700">Ekonomi &amp; UMKM</span>
+              <span class="text-sm font-bold text-[#1e4d2b]">420 Aspirasi</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill bg-[#1e4d2b]" style="width:0%" data-target="82%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-semibold text-gray-700">Lingkungan Hidup</span>
+              <span class="text-sm font-bold text-amber-600">312 Aspirasi</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill bg-amber-600" style="width:0%" data-target="61%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-semibold text-gray-700">Kesehatan Masyarakat</span>
+              <span class="text-sm font-bold text-gray-600">245 Aspirasi</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill bg-gray-500" style="width:0%" data-target="48%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-semibold text-gray-700">Keamanan &amp; Ketertiban</span>
+              <span class="text-sm font-bold text-gray-600">188 Aspirasi</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill bg-gray-400" style="width:0%" data-target="37%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LAPORAN TERKINI -->
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <h2 class="font-semibold text-gray-800">Laporan &amp; Aspirasi Terkini</h2>
+            <p class="text-gray-400 text-xs mt-0.5">Update terakhir dari warga hari ini, 12 Okt 2024</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="eksporPDF()" class="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+              Ekspor PDF
+            </button>
+            <button onclick="tindakLanjut()" class="px-4 py-2 rounded-lg bg-[#1e4d2b] text-white text-sm font-medium hover:bg-[#164020] transition">
+              Tindak Lanjut
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-100">
+                <th class="text-left py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide w-36">Pelapor / Tanggal</th>
+                <th class="text-left py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Subjek Laporan</th>
+                <th class="text-left py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide w-28">Kategori</th>
+                <th class="text-left py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide w-24">Status</th>
+                <th class="text-left py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide w-16">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <!-- Rows injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+  <div class="bg-white rounded-2xl p-6 w-96 shadow-2xl">
+    <h3 id="modal-title" class="text-lg font-bold text-gray-800 mb-2"></h3>
+    <p id="modal-body" class="text-gray-500 text-sm mb-5"></p>
+    <button onclick="closeModal()" class="w-full py-2.5 bg-[#1e4d2b] text-white rounded-lg font-medium hover:bg-[#164020] transition">Tutup</button>
+  </div>
+</div>
+
+<script src="app.js" defer></script>
+
+</body>
+</html>

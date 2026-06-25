@@ -1,0 +1,80 @@
+/* ── Whitelist Warga Styles ──────────────────────────────── */
+
+/* Filter Chips */
+.chip {
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.chip-active {
+  background: #1e4d2b;
+  color: white;
+  border-color: #1e4d2b;
+}
+.chip-inactive {
+  background: #f3f4f6;
+  color: #6b7280;
+  border-color: #e5e7eb;
+}
+.chip-inactive:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Badges */
+.badge-aktif {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+.badge-nonaktif {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* Form Inputs */
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: #1f2937;
+  outline: none;
+  transition: all 0.2s;
+}
+.form-input:focus {
+  border-color: #4ade80;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+}
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Pagination Button Active */
+.page-btn-active {
+  background: #1e4d2b;
+  color: white;
+  border-color: #1e4d2b;
+  font-weight: 700;
+}
+
+/* Toast Animation */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.toast-animate {
+  animation: slideUp 0.3s ease forwards;
+}
+
+/* Modal Animation Helper */
+.modal-show #form-modal-content, .modal-show #delete-modal-content {
+  transform: scale(1);
+}

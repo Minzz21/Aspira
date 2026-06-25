@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ASPIRA AI - Aspirasi Warga</title>
+  <meta name="description" content="Kelola keluhan dan masukan langsung dari warga melalui teknologi transkripsi suara otomatis."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../dashboard-desa/style.css"/>
+  <link rel="stylesheet" href="aspirasi-warga.css"/>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="w-56 flex flex-col bg-[#1e4d2b] text-white flex-shrink-0">
+    <div class="px-5 py-5 border-b border-green-800">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white rounded-md flex items-center justify-center">
+          <span class="text-[#1e4d2b] font-bold text-xs">AI</span>
+        </div>
+        <div>
+          <p class="font-bold text-sm leading-tight">ASPIRA AI</p>
+          <p class="text-green-300 text-[10px]">Governance Portal</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+      <a href="../dashboard-desa/index.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <i class="fa-solid fa-table-cells-large w-4 text-center"></i>
+        Dashboard Desa
+      </a>
+      <a href="../profil-desa/profil-desa.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <i class="fa-solid fa-building-columns w-4 text-center"></i>
+        Profil Desa &amp; UMKM
+      </a>
+      <a href="aspirasi-warga.html" class="sidebar-item active flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <i class="fa-regular fa-comment-dots w-4 text-center"></i>
+        Aspirasi Warga
+      </a>
+      <a href="../whitelist-warga/whitelist-warga.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <i class="fa-solid fa-shield-halved w-4 text-center"></i>
+        Whitelist Warga
+      </a>
+      <a href="../pengaturan/pengaturan.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <i class="fa-solid fa-gear w-4 text-center"></i>
+        Pengaturan
+      </a>
+    </nav>
+
+    <div class="px-3 pb-3 border-t border-green-800 pt-3 space-y-1">
+      <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-green-300">
+        <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
+        Keluar
+      </a>
+      <div class="flex items-center gap-3 px-3 py-2 mt-1">
+        <img src="https://ui-avatars.com/api/?name=Admin+Utama&background=4ade80&color=1e4d2b&size=40" class="w-9 h-9 rounded-full" alt="Admin"/>
+        <div>
+          <p class="text-sm font-semibold leading-tight">Admin Utama</p>
+          <p class="text-green-300 text-[10px]">Administrator</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 overflow-y-auto bg-gray-50">
+    <div class="p-6 max-w-5xl mx-auto space-y-5">
+
+      <!-- PAGE HEADER -->
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">Manajemen Aspirasi Warga</h1>
+          <p class="text-gray-500 text-sm mt-0.5">Kelola laporan suara warga dengan sistem transkripsi cerdas dan tindak lanjut terpusat.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="eksporLaporan()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition shadow-sm">
+            <i class="fa-solid fa-file-pdf text-red-500 text-xs"></i> Export PDF
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-5">
+        <!-- LEFT COLUMN: Data List -->
+        <div class="col-span-2 space-y-5">
+          <!-- STATS -->
+          <div class="grid grid-cols-3 gap-4">
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
+              <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                <i class="fa-solid fa-envelope-open-text text-blue-500 text-sm"></i>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Total Laporan</p>
+                <p class="text-2xl font-bold text-gray-800">342</p>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
+              <div class="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center">
+                <i class="fa-solid fa-spinner text-amber-500 text-sm"></i>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Diproses</p>
+                <p class="text-2xl font-bold text-gray-800">45</p>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
+              <div class="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                <i class="fa-solid fa-triangle-exclamation text-red-500 text-sm"></i>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Kritis</p>
+                <p class="text-2xl font-bold text-gray-800">18</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TABLE -->
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <div class="flex gap-2">
+                <button onclick="setFilter('semua')" id="filter-semua" class="filter-btn filter-active px-3 py-1.5 rounded-md text-xs font-semibold">Semua Laporan</button>
+                <button onclick="setFilter('kritis')" id="filter-kritis" class="filter-btn filter-inactive px-3 py-1.5 rounded-md text-xs font-semibold">Prioritas Kritis</button>
+                <button onclick="setFilter('selesai')" id="filter-selesai" class="filter-btn filter-inactive px-3 py-1.5 rounded-md text-xs font-semibold">Selesai</button>
+              </div>
+              <div class="relative">
+                <input type="text" placeholder="Cari pelapor/subjek..." class="pl-8 pr-3 py-1.5 border border-gray-200 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-green-500 w-56" oninput="searchLaporan(this.value)"/>
+                <i class="fa-solid fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-gray-100 text-left text-xs text-gray-400 uppercase tracking-wide">
+                    <th class="py-3 px-4 font-semibold">ID Laporan</th>
+                    <th class="py-3 px-4 font-semibold">Pelapor & Waktu</th>
+                    <th class="py-3 px-4 font-semibold">Kategori</th>
+                    <th class="py-3 px-4 font-semibold">Status</th>
+                    <th class="py-3 px-4 font-semibold">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="aspirasi-table">
+                  <!-- Injected via JS -->
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500 bg-gray-50">
+              <span id="page-info">Menampilkan 1-5 dari 342 laporan</span>
+              <div class="flex gap-1">
+                <button class="px-2 py-1 rounded border border-gray-200 hover:bg-white">&lt;</button>
+                <button class="px-2 py-1 rounded border border-gray-200 bg-white font-bold">1</button>
+                <button class="px-2 py-1 rounded border border-gray-200 hover:bg-white">2</button>
+                <button class="px-2 py-1 rounded border border-gray-200 hover:bg-white">&gt;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Detail Laporan -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col overflow-hidden h-[calc(100vh-140px)] sticky top-6">
+          <!-- Header Detail -->
+          <div class="p-5 border-b border-gray-100 bg-green-50/30">
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider" id="detail-id">REQ-202410-098</span>
+              <span id="detail-badge" class="badge-status status-kritis-bg text-[10px] font-bold px-2 py-0.5 rounded-full">KRITIS</span>
+            </div>
+            <h2 class="text-base font-bold text-gray-800 leading-tight mb-3" id="detail-subjek">Jembatan Dusun Wariagin Ambruk Sebagian</h2>
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-[#1e4d2b] text-white flex items-center justify-center font-bold text-xs" id="detail-avatar">W</div>
+              <div>
+                <p class="text-xs font-semibold text-gray-800" id="detail-pelapor">Bpk. Wawan Sutanto</p>
+                <p class="text-[10px] text-gray-500" id="detail-waktu">Hari ini, 08:30 WIB &bull; 0812-xxxx-xxxx</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Body Detail (Scrollable) -->
+          <div class="flex-1 overflow-y-auto p-5 space-y-5">
+            <!-- Audio Player Section -->
+            <div>
+              <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Rekaman Suara Asli</p>
+              <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 flex flex-col gap-3">
+                <div class="flex items-center gap-3">
+                  <button id="play-btn" onclick="toggleAudio()" class="w-10 h-10 rounded-full bg-[#1e4d2b] text-white flex items-center justify-center flex-shrink-0 hover:bg-[#164020] transition shadow-md">
+                    <i id="play-icon" class="fa-solid fa-play ml-0.5"></i>
+                  </button>
+                  <div class="flex-1 flex flex-col gap-1.5">
+                    <div class="flex justify-between text-[10px] font-medium text-gray-500 font-mono">
+                      <span id="audio-current">0:00</span>
+                      <span id="audio-total">0:45</span>
+                    </div>
+                    <!-- Custom Visualizer/Progress -->
+                    <div class="h-6 w-full flex items-center gap-0.5" id="audio-visualizer">
+                      <!-- Bars injected by JS -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transkripsi Section -->
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
+                  <i class="fa-solid fa-robot text-blue-500"></i> Transkripsi AI
+                </p>
+                <button onclick="copyTranskripsi()" class="text-[10px] font-semibold text-[#1e4d2b] hover:underline flex items-center gap-1">
+                  <i class="fa-regular fa-copy"></i> Salin Teks
+                </button>
+              </div>
+              <div class="bg-[#f8fafc] border border-blue-100 rounded-xl p-4 relative">
+                <i class="fa-solid fa-quote-left absolute top-3 left-3 text-blue-100 text-3xl"></i>
+                <p class="text-sm text-gray-700 leading-relaxed relative z-10 pl-6" id="detail-transkripsi">
+                  "Assalamualaikum Pak Kades, ini saya Wawan dari Dusun Wariagin RT 3. Tolong segera ditindaklanjuti jembatan penghubung yang ke arah persawahan itu ambruk separuh gara-gara banjir semalam. Warga nggak bisa lewat bawa hasil panen. Bahaya sekali kalau dibiarkan, tolong secepatnya ada perbaikan sementara."
+                </p>
+              </div>
+            </div>
+            
+            <!-- Lokasi & Kategori -->
+            <div class="grid grid-cols-2 gap-3">
+               <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Kategori Laporan</p>
+                  <p class="text-xs font-semibold text-gray-800" id="detail-kategori">Infrastruktur & Jalan</p>
+               </div>
+               <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Lokasi Kejadian</p>
+                  <p class="text-xs font-semibold text-gray-800"><i class="fa-solid fa-location-dot text-red-400 mr-1"></i> Dusun Wariagin</p>
+               </div>
+            </div>
+          </div>
+
+          <!-- Footer Detail / Admin Panel -->
+          <div class="p-5 border-t border-gray-100 bg-white">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-3">Panel Tindak Lanjut Admin</p>
+            <div class="grid grid-cols-3 gap-2 mb-4">
+              <button onclick="updateStatus('menunggu')" class="status-btn rounded text-xs font-medium py-2 border border-gray-200 text-gray-500 hover:bg-gray-50">Menunggu</button>
+              <button onclick="updateStatus('proses')" class="status-btn rounded text-xs font-medium py-2 border border-amber-200 bg-amber-50 text-amber-600 font-bold shadow-inner">Diproses</button>
+              <button onclick="updateStatus('selesai')" class="status-btn rounded text-xs font-medium py-2 border border-gray-200 text-gray-500 hover:bg-gray-50">Selesai</button>
+            </div>
+            <button onclick="simpanPerubahan()" class="w-full py-2.5 bg-[#1e4d2b] text-white rounded-lg text-sm font-semibold hover:bg-[#164020] transition shadow-sm flex items-center justify-center gap-2">
+              <i class="fa-solid fa-check"></i> Simpan Status
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#1e4d2b] text-white px-4 py-3 rounded-xl shadow-2xl text-sm font-medium">
+  <i class="fa-solid fa-check-circle text-green-300"></i>
+  <span id="toast-msg"></span>
+</div>
+
+<script src="aspirasi-warga.js" defer></script>
+</body>
+</html>

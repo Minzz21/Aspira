@@ -1,0 +1,47 @@
+/* ── Profil Desa Page Styles ─────────────────────────────── */
+
+.umkm-bar-track {
+  height: 5px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+.umkm-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 1.2s ease;
+}
+
+.dual-bar-track {
+  height: 5px;
+  border-radius: 9999px;
+  background: #e5e7eb;
+  overflow: hidden;
+  margin-bottom: 2px;
+}
+.dual-bar {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 1.2s ease;
+}
+.dual-bar.pemilik { background: #1e4d2b; }
+.dual-bar.karyawan { background: #f59e0b; }
+
+.badge-growth-up {
+  background: #dcfce7; color: #15803d;
+  font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 9999px;
+}
+.badge-growth-mid {
+  background: #fef9c3; color: #a16207;
+  font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 9999px;
+}
+.badge-growth-down {
+  background: #fee2e2; color: #dc2626;
+  font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 9999px;
+}
+
+.leaflet-control-attribution { font-size: 9px !important; }
+.sdm-row { padding: 4px 0; }

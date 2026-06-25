@@ -1,0 +1,174 @@
+/* ── Aspirasi Warga JS ── */
+
+const dataAspirasi = [
+  { id: 'REQ-098', nama: 'Bpk. Wawan Sutanto', waktu: 'Hari ini, 08:30 WIB', kategori: 'Infrastruktur & Jalan', status: 'kritis', subjek: 'Jembatan Dusun Wariagin Ambruk Sebagian', transkripsi: '"Assalamualaikum Pak Kades, ini saya Wawan dari Dusun Wariagin RT 3. Tolong segera ditindaklanjuti jembatan penghubung yang ke arah persawahan itu ambruk separuh gara-gara banjir semalam. Warga nggak bisa lewat bawa hasil panen. Bahaya sekali kalau dibiarkan, tolong secepatnya ada perbaikan sementara."', duration: 45 },
+  { id: 'REQ-097', nama: 'Ibu Siti Aminah', waktu: 'Kemarin, 14:15 WIB', kategori: 'Bantuan Sosial', status: 'proses', subjek: 'Distribusi Bansos Belum Merata', transkripsi: '"Pak, tolong dicek lagi data penerima bansos di Dusun Krajan. Masih banyak lansia yang belum dapat, malah yang mampu yang dapat. Mohon didata ulang."', duration: 28 },
+  { id: 'REQ-096', nama: 'Sdr. Budi Setiawan', waktu: '10 Okt 2024, 09:00 WIB', kategori: 'Keamanan Lingkungan', status: 'selesai', subjek: 'Permintaan Lampu Penerangan Jalan', transkripsi: '"Alhamdulillah lampu jalan di pertigaan dekat balai desa sudah dipasang. Terima kasih atas respon cepatnya dari pihak desa."', duration: 15 },
+  { id: 'REQ-095', nama: 'Bpk. Herman', waktu: '09 Okt 2024, 16:45 WIB', kategori: 'Kesehatan Masyarakat', status: 'menunggu', subjek: 'Jadwal Posyandu Tidak Jelas', transkripsi: '"Mohon informasi jadwal posyandu bulan ini diperjelas pengumumannya. Banyak ibu-ibu yang kecele datang ke balai karena jadwalnya mendadak diubah."', duration: 22 },
+];
+
+let activeFilter = 'semua';
+let searchQuery = '';
+let activeReport = dataAspirasi[0];
+
+function renderTable() {
+  const tbody = document.getElementById('aspirasi-table');
+  const filtered = dataAspirasi.filter(item => {
+    const matchFilter = activeFilter === 'semua' || item.status === activeFilter;
+    const matchSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        item.subjek.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchFilter && matchSearch;
+  });
+
+  tbody.innerHTML = filtered.map(item => `
+    <tr class="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer ${item.id === activeReport.id ? 'bg-green-50/30' : ''}" onclick="selectReport('${item.id}')">
+      <td class="py-3 px-4 text-xs font-mono text-gray-500">${item.id}</td>
+      <td class="py-3 px-4">
+        <p class="text-sm font-semibold text-gray-800">${item.nama}</p>
+        <p class="text-[10px] text-gray-400">${item.waktu}</p>
+      </td>
+      <td class="py-3 px-4 text-xs text-gray-600">${item.kategori}</td>
+      <td class="py-3 px-4">
+        <span class="badge-status status-${item.status}-bg text-[10px] font-bold px-2 py-0.5 rounded-full">${item.status.toUpperCase()}</span>
+      </td>
+      <td class="py-3 px-4">
+        <button class="text-[#1e4d2b] hover:text-[#164020] text-sm"><i class="fa-solid fa-chevron-right"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function setFilter(filter) {
+  activeFilter = filter;
+  ['semua', 'kritis', 'selesai'].forEach(f => {
+    const btn = document.getElementById('filter-' + f);
+    if(f === filter) {
+      btn.className = 'filter-btn filter-active px-3 py-1.5 rounded-md text-xs font-semibold';
+    } else {
+      btn.className = 'filter-btn filter-inactive px-3 py-1.5 rounded-md text-xs font-semibold';
+    }
+  });
+  renderTable();
+}
+
+function searchLaporan(val) {
+  searchQuery = val;
+  renderTable();
+}
+
+function selectReport(id) {
+  activeReport = dataAspirasi.find(item => item.id === id);
+  renderTable();
+  updateDetailPanel();
+}
+
+function updateDetailPanel() {
+  document.getElementById('detail-id').textContent = activeReport.id;
+  document.getElementById('detail-subjek').textContent = activeReport.subjek;
+  document.getElementById('detail-pelapor').textContent = activeReport.nama;
+  document.getElementById('detail-waktu').textContent = activeReport.waktu;
+  document.getElementById('detail-kategori').textContent = activeReport.kategori;
+  document.getElementById('detail-transkripsi').textContent = activeReport.transkripsi;
+  document.getElementById('detail-avatar').textContent = activeReport.nama[5]; 
+  
+  const badge = document.getElementById('detail-badge');
+  badge.className = `badge-status status-${activeReport.status}-bg text-[10px] font-bold px-2 py-0.5 rounded-full`;
+  badge.textContent = activeReport.status.toUpperCase();
+
+  updateStatus(activeReport.status);
+  resetAudio();
+}
+
+function updateStatus(status) {
+  activeReport.status = status;
+  const btns = document.querySelectorAll('.status-btn');
+  btns[0].className = `status-btn rounded text-xs font-medium py-2 border ${status==='menunggu' ? 'active-menunggu' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`;
+  btns[1].className = `status-btn rounded text-xs font-medium py-2 border ${status==='proses' ? 'active-proses' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`;
+  btns[2].className = `status-btn rounded text-xs font-medium py-2 border ${status==='selesai' ? 'active-selesai' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`;
+}
+
+function simpanPerubahan() {
+  renderTable();
+  showToast(`Status laporan ${activeReport.id} berhasil diperbarui.`);
+}
+
+function copyTranskripsi() {
+  navigator.clipboard.writeText(activeReport.transkripsi);
+  showToast('Transkripsi berhasil disalin ke clipboard.');
+}
+
+function eksporLaporan() {
+  showToast('PDF Laporan sedang dibuat...');
+}
+
+/* Audio Player Simulation */
+let isPlaying = false;
+let audioProgress = 0;
+let audioTimer;
+
+function resetAudio() {
+  isPlaying = false;
+  audioProgress = 0;
+  clearInterval(audioTimer);
+  document.getElementById('play-icon').className = 'fa-solid fa-play ml-0.5';
+  document.getElementById('audio-current').textContent = '0:00';
+  document.getElementById('audio-total').textContent = `0:${activeReport.duration}`;
+  generateVisualizer();
+}
+
+function generateVisualizer() {
+  const vis = document.getElementById('audio-visualizer');
+  let barsHtml = '';
+  // Generate random heights for waveform
+  for(let i=0; i<40; i++) {
+    const height = Math.floor(Math.random() * 100) + 20;
+    barsHtml += `<div class="vis-bar" style="height: ${height}%" id="bar-${i}"></div>`;
+  }
+  vis.innerHTML = barsHtml;
+}
+
+function toggleAudio() {
+  isPlaying = !isPlaying;
+  document.getElementById('play-icon').className = isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play ml-0.5';
+  
+  if(isPlaying) {
+    audioTimer = setInterval(() => {
+      audioProgress++;
+      if(audioProgress >= activeReport.duration) {
+        resetAudio();
+      } else {
+        document.getElementById('audio-current').textContent = `0:${audioProgress.toString().padStart(2, '0')}`;
+        updateVisualizerColors();
+      }
+    }, 1000);
+  } else {
+    clearInterval(audioTimer);
+  }
+}
+
+function updateVisualizerColors() {
+  const pct = audioProgress / activeReport.duration;
+  const activeBarIndex = Math.floor(pct * 40);
+  for(let i=0; i<40; i++) {
+    const bar = document.getElementById(`bar-${i}`);
+    if(i < activeBarIndex) bar.className = 'vis-bar played';
+    else if(i === activeBarIndex) bar.className = 'vis-bar active';
+    else bar.className = 'vis-bar';
+  }
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  toast.classList.remove('hidden');
+  toast.classList.add('toast-animate');
+  setTimeout(() => {
+    toast.classList.add('hidden');
+    toast.classList.remove('toast-animate');
+  }, 3000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderTable();
+  updateDetailPanel();
+});

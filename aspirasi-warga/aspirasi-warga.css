@@ -1,0 +1,47 @@
+/* ── Aspirasi Warga Styles ───────────────────────────── */
+
+.filter-btn {
+  transition: all 0.2s;
+}
+.filter-active {
+  background: #1e4d2b;
+  color: white;
+}
+.filter-inactive {
+  background: transparent;
+  color: #6b7280;
+}
+.filter-inactive:hover {
+  background: #e5e7eb;
+}
+
+/* Badge Status Styles */
+.status-kritis-bg { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+.status-proses-bg { background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; }
+.status-selesai-bg { background: #dcfce7; color: #16a34a; border: 1px solid #86efac; }
+.status-menunggu-bg { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
+
+/* Status Button Active States */
+.status-btn.active-menunggu { border-color: #9ca3af; background: #f3f4f6; color: #4b5563; font-weight: 700; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); }
+.status-btn.active-proses { border-color: #fcd34d; background: #fffbeb; color: #d97706; font-weight: 700; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); }
+.status-btn.active-selesai { border-color: #86efac; background: #f0fdf4; color: #16a34a; font-weight: 700; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); }
+
+/* Audio Visualizer Bars */
+.vis-bar {
+  flex: 1;
+  background: #cbd5e1;
+  border-radius: 9999px;
+  min-height: 4px;
+  transition: height 0.1s ease, background 0.2s;
+}
+.vis-bar.played { background: #1e4d2b; }
+.vis-bar.active { background: #4ade80; }
+
+/* Toast Animation */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.toast-animate {
+  animation: slideUp 0.3s ease forwards;
+}

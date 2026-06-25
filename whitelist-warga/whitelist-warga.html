@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ASPIRA AI - Whitelist Warga</title>
+  <meta name="description" content="Manajemen daftar warga yang diberikan akses khusus ke sistem."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../dashboard-desa/style.css"/>
+  <link rel="stylesheet" href="whitelist-warga.css"/>
+
+  <!-- Firebase Compat SDK (Bisa jalan tanpa server lokal) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="w-56 flex flex-col bg-[#1e4d2b] text-white flex-shrink-0">
+    <div class="px-5 py-5 border-b border-green-800">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white rounded-md flex items-center justify-center">
+          <span class="text-[#1e4d2b] font-bold text-xs">AI</span>
+        </div>
+        <div>
+          <p class="font-bold text-sm leading-tight">ASPIRA AI</p>
+          <p class="text-green-300 text-[10px]">Governance Portal</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+      <a href="../dashboard-desa/index.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <i class="fa-solid fa-table-cells-large w-4 text-center"></i>
+        Dashboard Desa
+      </a>
+      <a href="../profil-desa/profil-desa.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <i class="fa-solid fa-building-columns w-4 text-center"></i>
+        Profil Desa &amp; UMKM
+      </a>
+      <a href="../aspirasi-warga/aspirasi-warga.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <i class="fa-regular fa-comment-dots w-4 text-center"></i>
+        Aspirasi Warga
+      </a>
+      <a href="whitelist-warga.html" class="sidebar-item active flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <i class="fa-solid fa-shield-halved w-4 text-center"></i>
+        Whitelist Warga
+      </a>
+      <a href="../pengaturan/pengaturan.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <i class="fa-solid fa-gear w-4 text-center"></i>
+        Pengaturan
+      </a>
+    </nav>
+
+    <div class="px-3 pb-3 border-t border-green-800 pt-3 space-y-1">
+      <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-green-300">
+        <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
+        Keluar
+      </a>
+      <div class="flex items-center gap-3 px-3 py-2 mt-1">
+        <img src="https://ui-avatars.com/api/?name=Admin+Utama&background=4ade80&color=1e4d2b&size=40" class="w-9 h-9 rounded-full" alt="Admin"/>
+        <div>
+          <p class="text-sm font-semibold leading-tight">Admin Utama</p>
+          <p class="text-green-300 text-[10px]">Administrator</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 overflow-y-auto bg-gray-50">
+    <div class="p-6 max-w-5xl mx-auto space-y-5">
+
+      <!-- PAGE HEADER -->
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">Manajemen Whitelist Warga</h1>
+          <p class="text-gray-500 text-sm mt-0.5">Daftar warga yang diberikan akses khusus untuk masuk ke sistem ASPIRA.</p>
+        </div>
+        <div>
+          <button onclick="openFormModal()" class="flex items-center gap-2 px-4 py-2.5 bg-[#1e4d2b] text-white text-sm font-semibold rounded-lg hover:bg-[#164020] transition shadow-sm">
+            <i class="fa-solid fa-plus text-xs"></i> Tambah Warga
+          </button>
+        </div>
+      </div>
+
+      <!-- STATS & FILTERS -->
+      <div class="grid grid-cols-3 gap-5">
+        <!-- Stat Card -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 col-span-1 flex flex-col justify-center">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Total Whitelist</p>
+          <p class="text-3xl font-bold text-gray-800" id="total-warga">1.284</p>
+          <p class="text-xs font-semibold text-green-600 mt-2 flex items-center gap-1">
+            <i class="fa-solid fa-arrow-trend-up"></i> +12 bulan ini
+          </p>
+        </div>
+
+        <!-- Filter Area -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 col-span-2">
+          <div class="relative mb-4">
+            <input type="text" id="search-input" placeholder="Filter berdasarkan Nama, NIK, atau Dusun..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition" oninput="handleSearch()"/>
+            <i class="fa-solid fa-filter absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="setFilter('semua')" id="chip-semua" class="chip chip-active">Semua</button>
+            <button onclick="setFilter('aktif')" id="chip-aktif" class="chip chip-inactive">Aktif</button>
+            <button onclick="setFilter('nonaktif')" id="chip-nonaktif" class="chip chip-inactive">Nonaktif</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE AREA -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-gray-50/80 border-b border-gray-100 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <th class="py-3.5 px-5">Nama Lengkap</th>
+                <th class="py-3.5 px-5">NIK</th>
+                <th class="py-3.5 px-5">Dusun/Wilayah</th>
+                <th class="py-3.5 px-5">Status Akses</th>
+                <th class="py-3.5 px-5">Tanggal Ditambahkan</th>
+                <th class="py-3.5 px-5 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="whitelist-table">
+              <!-- Injected by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="p-4 border-t border-gray-100 flex justify-between items-center bg-white">
+          <span class="text-xs text-gray-500 font-medium" id="pagination-info">Menampilkan 4 dari 12 warga</span>
+          <div class="flex items-center gap-1.5" id="pagination-controls">
+            <button class="w-8 h-8 rounded border border-gray-200 text-gray-400 hover:bg-gray-50 flex items-center justify-center transition disabled:opacity-50" onclick="prevPage()"><i class="fa-solid fa-chevron-left text-[10px]"></i></button>
+            <div id="page-numbers" class="flex gap-1.5"></div>
+            <button class="w-8 h-8 rounded border border-gray-200 text-gray-400 hover:bg-gray-50 flex items-center justify-center transition disabled:opacity-50" onclick="nextPage()"><i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- FORM MODAL (Tambah/Edit) -->
+<div id="form-modal" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 modal-overlay">
+  <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden transform scale-95 transition-transform duration-200" id="form-modal-content">
+    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+      <h3 class="text-lg font-bold text-gray-800" id="form-modal-title">Tambah Warga Whitelist</h3>
+      <button onclick="closeFormModal()" class="text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    
+    <div class="p-6 space-y-4">
+      <input type="hidden" id="form-id">
+      
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Nama Lengkap</label>
+        <input type="text" id="input-nama" class="form-input" placeholder="Masukkan nama lengkap...">
+      </div>
+      
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Nomor Induk Kependudukan (NIK)</label>
+        <div class="relative">
+          <input type="text" id="input-nik" class="form-input font-mono tracking-wider pl-9" placeholder="16 digit NIK..." maxlength="16" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+          <i class="fa-solid fa-id-card absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        </div>
+        <p class="text-[10px] text-red-500 mt-1 hidden" id="error-nik">NIK harus tepat 16 digit angka.</p>
+      </div>
+      
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Dusun / Wilayah</label>
+        <select id="input-dusun" class="form-input appearance-none bg-no-repeat bg-right pr-8" style="background-image: url('data:image/svg+xml;utf8,<svg fill=%22none%22 stroke=%22%239ca3af%22 viewBox=%220 0 24 24%22 xmlns=%22http://www.w3.org/2000/svg%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M19 9l-7 7-7-7%22></path></svg>'); background-size: 1.25rem; background-position: calc(100% - 0.75rem) center;">
+          <option value="" disabled selected>Pilih Dusun...</option>
+          <option value="Dusun Krajan Tengah">Dusun Krajan Tengah</option>
+          <option value="Dusun Sawah Baru">Dusun Sawah Baru</option>
+          <option value="Dusun Gunung Sari">Dusun Gunung Sari</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Status Akses</label>
+        <div class="flex gap-4">
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <div class="relative w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center group-hover:border-green-500">
+              <input type="radio" name="status" value="Aktif" id="radio-aktif" class="peer opacity-0 absolute" checked>
+              <div class="w-2 h-2 rounded-full bg-green-500 scale-0 peer-checked:scale-100 transition-transform"></div>
+            </div>
+            <span class="text-sm font-medium text-gray-700">Aktif</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <div class="relative w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center group-hover:border-red-500">
+              <input type="radio" name="status" value="Nonaktif" id="radio-nonaktif" class="peer opacity-0 absolute">
+              <div class="w-2 h-2 rounded-full bg-red-500 scale-0 peer-checked:scale-100 transition-transform"></div>
+            </div>
+            <span class="text-sm font-medium text-gray-700">Nonaktif</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex justify-end gap-3">
+      <button onclick="closeFormModal()" class="px-5 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-200 rounded-lg transition">Batal</button>
+      <button onclick="saveData()" class="px-5 py-2.5 text-sm font-semibold bg-[#1e4d2b] text-white hover:bg-[#164020] rounded-lg transition shadow-sm">Simpan Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div id="delete-modal" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center transform scale-95 transition-transform duration-200" id="delete-modal-content">
+    <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+      <i class="fa-solid fa-trash-can text-red-500 text-2xl"></i>
+    </div>
+    <h3 class="text-lg font-bold text-gray-800 mb-2">Hapus Warga?</h3>
+    <p class="text-sm text-gray-500 mb-6">Anda yakin ingin menghapus <span id="delete-nama" class="font-bold text-gray-700"></span> dari whitelist? Akses warga ini akan dicabut secara permanen.</p>
+    <div class="flex gap-3">
+      <button onclick="closeDeleteModal()" class="flex-1 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition">Batal</button>
+      <button onclick="confirmDelete()" class="flex-1 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition shadow-sm">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#1e4d2b] text-white px-4 py-3 rounded-xl shadow-2xl text-sm font-medium">
+  <i id="toast-icon" class="fa-solid fa-check-circle text-green-300"></i>
+  <span id="toast-msg"></span>
+</div>
+
+<!-- Load Konfigurasi Firebase & Script Utama -->
+<script src="../shared/firebase-config.js" defer></script>
+<script src="whitelist-warga.js" defer></script>
+</body>
+</html>

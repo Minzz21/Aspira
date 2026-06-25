@@ -1,0 +1,132 @@
+/* ── Pengaturan Page Styles ──────────────────────────────── */
+
+/* Tabs */
+.tab-btn {
+  border-bottom: 2px solid transparent;
+  color: #9ca3af;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.tab-active {
+  color: #1e4d2b;
+  border-bottom-color: #1e4d2b;
+}
+.tab-inactive:hover {
+  color: #374151;
+  border-bottom-color: #d1d5db;
+}
+
+/* Form Labels */
+.setting-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+/* Form Inputs */
+.setting-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: #1f2937;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+.setting-input:focus {
+  border-color: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+  background: #fff;
+}
+.setting-input::placeholder {
+  color: #9ca3af;
+}
+.setting-input-disabled {
+  background: #f1f5f9;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+.setting-input-disabled:focus {
+  border-color: #e2e8f0;
+  box-shadow: none;
+  background: #f1f5f9;
+}
+
+/* Avatar Edit Button */
+.avatar-edit-btn {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 24px;
+  height: 24px;
+  background: #1e4d2b;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid #fff;
+  transition: background 0.2s, transform 0.15s;
+}
+.avatar-edit-btn:hover {
+  background: #164020;
+  transform: scale(1.1);
+}
+
+/* Password strength bars */
+.strength-bar {
+  flex: 1;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  transition: background 0.3s ease;
+}
+.strength-weak   { background: #ef4444; }
+.strength-fair   { background: #f59e0b; }
+.strength-good   { background: #3b82f6; }
+.strength-strong { background: #22c55e; }
+
+/* Password requirements */
+.req-item {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+.req-fail {
+  color: #9ca3af;
+}
+.req-pass {
+  color: #16a34a;
+  font-weight: 600;
+}
+.req-pass i {
+  color: #16a34a;
+}
+
+/* Toast animation */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.toast-in {
+  animation: slideUp 0.25s ease forwards;
+}
+
+/* NIK match states */
+.input-match {
+  border-color: #4ade80 !important;
+  background: #f0fdf4 !important;
+}
+.input-mismatch {
+  border-color: #fca5a5 !important;
+  background: #fff5f5 !important;
+}
