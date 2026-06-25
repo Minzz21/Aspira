@@ -1,11 +1,7 @@
-/* ── Aspirasi Warga JS ── */
+/* ── Aspirasi Warga JS (TERINTEGRASI FIREBASE COMPAT) ── */
 
-const dataAspirasi = [
-  { id: 'REQ-098', nama: 'Bpk. Wawan Sutanto', waktu: 'Hari ini, 08:30 WIB', kategori: 'Infrastruktur & Jalan', status: 'kritis', subjek: 'Jembatan Dusun Wariagin Ambruk Sebagian', transkripsi: '"Assalamualaikum Pak Kades, ini saya Wawan dari Dusun Wariagin RT 3. Tolong segera ditindaklanjuti jembatan penghubung yang ke arah persawahan itu ambruk separuh gara-gara banjir semalam. Warga nggak bisa lewat bawa hasil panen. Bahaya sekali kalau dibiarkan, tolong secepatnya ada perbaikan sementara."', duration: 45 },
-  { id: 'REQ-097', nama: 'Ibu Siti Aminah', waktu: 'Kemarin, 14:15 WIB', kategori: 'Bantuan Sosial', status: 'proses', subjek: 'Distribusi Bansos Belum Merata', transkripsi: '"Pak, tolong dicek lagi data penerima bansos di Dusun Krajan. Masih banyak lansia yang belum dapat, malah yang mampu yang dapat. Mohon didata ulang."', duration: 28 },
-  { id: 'REQ-096', nama: 'Sdr. Budi Setiawan', waktu: '10 Okt 2024, 09:00 WIB', kategori: 'Keamanan Lingkungan', status: 'selesai', subjek: 'Permintaan Lampu Penerangan Jalan', transkripsi: '"Alhamdulillah lampu jalan di pertigaan dekat balai desa sudah dipasang. Terima kasih atas respon cepatnya dari pihak desa."', duration: 15 },
-  { id: 'REQ-095', nama: 'Bpk. Herman', waktu: '09 Okt 2024, 16:45 WIB', kategori: 'Kesehatan Masyarakat', status: 'menunggu', subjek: 'Jadwal Posyandu Tidak Jelas', transkripsi: '"Mohon informasi jadwal posyandu bulan ini diperjelas pengumumannya. Banyak ibu-ibu yang kecele datang ke balai karena jadwalnya mendadak diubah."', duration: 22 },
-];
+let dataAspirasi = [];
+const aspirasiCol = db.collection('aspirasi');
 
 let activeFilter = 'semua';
 let searchQuery = '';
@@ -13,6 +9,16 @@ let activeReport = dataAspirasi[0];
 
 function renderTable() {
   const tbody = document.getElementById('aspirasi-table');
+  
+  if (dataAspirasi.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500 text-sm">Belum ada aspirasi warga.</td></tr>`;
+    // Clear detail panel if empty
+    document.getElementById('detail-subjek').textContent = "-";
+    document.getElementById('detail-pelapor').textContent = "-";
+    document.getElementById('detail-transkripsi').textContent = "Tidak ada laporan yang dipilih.";
+    return;
+  }
+
   const filtered = dataAspirasi.filter(item => {
     const matchFilter = activeFilter === 'semua' || item.status === activeFilter;
     const matchSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -87,9 +93,17 @@ function updateStatus(status) {
   btns[2].className = `status-btn rounded text-xs font-medium py-2 border ${status==='selesai' ? 'active-selesai' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`;
 }
 
-function simpanPerubahan() {
-  renderTable();
-  showToast(`Status laporan ${activeReport.id} berhasil diperbarui.`);
+async function simpanPerubahan() {
+  if (!activeReport) return;
+  try {
+    await aspirasiCol.doc(activeReport.id).update({
+      status: activeReport.status
+    });
+    showToast(`Status laporan berhasil diperbarui.`);
+  } catch (error) {
+    console.error("Gagal update status:", error);
+    showToast("Gagal mengupdate status laporan.", "error");
+  }
 }
 
 function copyTranskripsi() {
@@ -168,7 +182,57 @@ function showToast(msg) {
   }, 3000);
 }
 
+function initFirebase() {
+  // Ambil data aspirasi dari Firestore secara real-time
+  aspirasiCol.onSnapshot((snapshot) => {
+    dataAspirasi = [];
+    snapshot.forEach((docSnap) => {
+      dataAspirasi.push({
+        id: docSnap.id,
+        ...docSnap.data()
+      });
+    });
+    
+    // Sort terbaru (contoh: berdasarkan field createdAt)
+    dataAspirasi.sort((a, b) => {
+      const timeA = a.createdAt ? a.createdAt.toMillis() : Date.now();
+      const timeB = b.createdAt ? b.createdAt.toMillis() : Date.now();
+      return timeB - timeA;
+    });
+
+    if(dataAspirasi.length > 0 && !activeReport) {
+      activeReport = dataAspirasi[0];
+    }
+    
+    // Jika data yang sedang aktif dihapus dari DB, reset
+    if (activeReport && !dataAspirasi.find(d => d.id === activeReport.id)) {
+      activeReport = dataAspirasi.length > 0 ? dataAspirasi[0] : null;
+    }
+
+    renderTable();
+    if (activeReport) updateDetailPanel();
+  }, (error) => {
+    console.error("Error mengambil data aspirasi: ", error);
+  });
+}
+
+// Simulasi seed data (hanya sekali jika database masih kosong)
+async function seedDummyAspirasi() {
+  const snapshot = await aspirasiCol.limit(1).get();
+  if (snapshot.empty) {
+    console.log("Database aspirasi kosong. Menyuntikkan data dummy awal...");
+    const dummies = [
+      { nama: 'Bpk. Wawan Sutanto', waktu: 'Hari ini, 08:30 WIB', kategori: 'Infrastruktur & Jalan', status: 'kritis', subjek: 'Jembatan Dusun Wariagin Ambruk Sebagian', transkripsi: '"Assalamualaikum Pak Kades, ini saya Wawan dari Dusun Wariagin RT 3. Tolong segera ditindaklanjuti jembatan penghubung yang ke arah persawahan itu ambruk separuh gara-gara banjir semalam. Warga nggak bisa lewat bawa hasil panen. Bahaya sekali kalau dibiarkan, tolong secepatnya ada perbaikan sementara."', duration: 45, createdAt: firebase.firestore.FieldValue.serverTimestamp() },
+      { nama: 'Ibu Siti Aminah', waktu: 'Kemarin, 14:15 WIB', kategori: 'Bantuan Sosial', status: 'proses', subjek: 'Distribusi Bansos Belum Merata', transkripsi: '"Pak, tolong dicek lagi data penerima bansos di Dusun Krajan. Masih banyak lansia yang belum dapat, malah yang mampu yang dapat. Mohon didata ulang."', duration: 28, createdAt: firebase.firestore.FieldValue.serverTimestamp() },
+      { nama: 'Sdr. Budi Setiawan', waktu: '10 Okt 2024, 09:00 WIB', kategori: 'Keamanan Lingkungan', status: 'selesai', subjek: 'Permintaan Lampu Penerangan Jalan', transkripsi: '"Alhamdulillah lampu jalan di pertigaan dekat balai desa sudah dipasang. Terima kasih atas respon cepatnya dari pihak desa."', duration: 15, createdAt: firebase.firestore.FieldValue.serverTimestamp() },
+    ];
+    for (const d of dummies) {
+      await aspirasiCol.add(d);
+    }
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  renderTable();
-  updateDetailPanel();
+  initFirebase();
+  seedDummyAspirasi(); // Memasukkan dummy agar tabel tidak kosong di awal
 });

@@ -10,6 +10,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="stylesheet" href="../style.css"/>
   <link rel="stylesheet" href="aspirasi-warga.css"/>
+
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
@@ -257,6 +261,8 @@
   <span id="toast-msg"></span>
 </div>
 
+<!-- Load Konfigurasi Firebase & Script Utama -->
+<script src="../shared/firebase-config.js" defer></script>
 <script src="aspirasi-warga.js" defer></script>
 </body>
 </html>

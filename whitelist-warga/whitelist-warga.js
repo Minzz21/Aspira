@@ -16,7 +16,7 @@ const whitelistCol = db.collection('whitelist');
 
 function init() {
   // Gunakan onSnapshot agar tabel langsung update ketika data di Firestore berubah
-  whitelistCol.orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
+  whitelistCol.onSnapshot((snapshot) => {
     rawData = [];
     snapshot.forEach((docSnap) => {
       rawData.push({
@@ -24,11 +24,19 @@ function init() {
         ...docSnap.data()
       });
     });
+    
+    // Sort data terbaru di atas (menghindari error index Firestore)
+    rawData.sort((a, b) => {
+      const timeA = a.createdAt ? a.createdAt.toMillis() : Date.now();
+      const timeB = b.createdAt ? b.createdAt.toMillis() : Date.now();
+      return timeB - timeA;
+    });
+
     updateTotalWarga();
     applyFilters();
   }, (error) => {
     console.error("Error mengambil data: ", error);
-    showToast("Gagal terhubung ke database.", "error");
+    showToast("Gagal mengambil data dari database. Cek Rules Firestore Anda.", "error");
   });
 }
 
