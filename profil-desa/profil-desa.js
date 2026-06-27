@@ -108,22 +108,41 @@ function loadPopulationData() {
     let total = 0;
     let male = 0;
     let female = 0;
+    
+    const ageGroups = {
+      '0-14': 0,
+      '15-24': 0,
+      '25-44': 0,
+      '45-64': 0,
+      '65+': 0
+    };
 
     snapshot.forEach((doc) => {
       const data = doc.data();
       total++;
       if (data.gender === 'Perempuan') female++;
       else male++; // default ke laki-laki jika field gender belum ada
+      
+      if (data.nik && data.nik.length === 16) {
+        const age = calculateAgeFromNIK(data.nik);
+        if (age !== null) {
+          if (age >= 0 && age <= 14) ageGroups['0-14']++;
+          else if (age >= 15 && age <= 24) ageGroups['15-24']++;
+          else if (age >= 25 && age <= 44) ageGroups['25-44']++;
+          else if (age >= 45 && age <= 64) ageGroups['45-64']++;
+          else if (age >= 65) ageGroups['65+']++;
+        }
+      }
     });
 
-    updatePopulationInfographic(total, male, female);
+    updatePopulationInfographic(total, male, female, ageGroups);
   }, (error) => {
     console.error('Error memuat data penduduk:', error);
     document.getElementById('stat-total').textContent = 'Error';
   });
 }
 
-function updatePopulationInfographic(total, male, female) {
+function updatePopulationInfographic(total, male, female, ageGroups) {
   const malePct = total > 0 ? ((male / total) * 100) : 0;
   const femalePct = total > 0 ? ((female / total) * 100) : 0;
   const ratio = female > 0 ? (male / female).toFixed(2) : '–';
@@ -161,8 +180,8 @@ function updatePopulationInfographic(total, male, female) {
     ringFemale.setAttribute('stroke-dashoffset', `-${malePct}`);
   }
 
-  // Update per-dusun distribution bars (if data has dusun breakdown)
-  updateDusunBreakdown();
+  // Update Age Distribution
+  updateAgeDistribution(ageGroups, total);
 }
 
 function animateCounter(elementId, target) {
@@ -184,9 +203,66 @@ function animateCounter(elementId, target) {
   requestAnimationFrame(update);
 }
 
-function updateDusunBreakdown() {
-  // Future: bisa query per-dusun dari whitelist untuk breakdown
-  // Saat ini distribusi usia tetap statis karena data whitelist belum punya field usia
+function updateAgeDistribution(ageGroups, total) {
+  const groups = [
+    { id: '0-14', count: ageGroups['0-14'] },
+    { id: '15-24', count: ageGroups['15-24'] },
+    { id: '25-44', count: ageGroups['25-44'] },
+    { id: '45-64', count: ageGroups['45-64'] },
+    { id: '65-plus', count: ageGroups['65+'] },
+  ];
+
+  groups.forEach(g => {
+    const bar = document.getElementById(`bar-age-${g.id}`);
+    const text = document.getElementById(`text-age-${g.id}`);
+    
+    if (bar && text) {
+      const pct = total > 0 ? Math.round((g.count / total) * 100) : 0;
+      
+      // We use timeout to trigger CSS transition after element load
+      setTimeout(() => {
+        bar.style.width = `${pct}%`;
+      }, 100);
+      
+      text.innerHTML = `${g.count.toLocaleString('id-ID')} <span class="font-normal text-gray-400">(${pct}%)</span>`;
+    }
+  });
+}
+
+function calculateAgeFromNIK(nik) {
+  if (!nik || nik.length < 12) return null;
+  // NIK pattern: PP KK CC DD MM YY NNNN (digits 7-12 is DDMMYY)
+  let day = parseInt(nik.substring(6, 8));
+  let month = parseInt(nik.substring(8, 10));
+  let yearStr = nik.substring(10, 12);
+  let year = parseInt(yearStr);
+
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+
+  // Tanggal lahir perempuan di NIK ditambah 40
+  if (day > 40) day -= 40;
+
+  let currentYear = new Date().getFullYear();
+  let currentYear2Digits = currentYear % 100;
+  
+  // Asumsi: jika YY lebih besar dari tahun saat ini (2 digits), maka kelahiran 1900-an
+  // Jika YY lebih kecil atau sama, kelahiran 2000-an
+  if (year > currentYear2Digits) {
+    year += 1900;
+  } else {
+    year += 2000;
+  }
+
+  const birthDate = new Date(year, month - 1, day);
+  const today = new Date();
+  
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+  }
+  
+  return age >= 0 ? age : 0;
 }
 
 
