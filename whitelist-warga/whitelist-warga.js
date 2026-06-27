@@ -159,6 +159,8 @@ function openFormModal(id = null) {
     document.getElementById('input-nama').value = item.nama;
     document.getElementById('input-nik').value = item.nik;
     document.getElementById('input-dusun').value = item.dusun;
+    if (item.gender === 'Perempuan') document.getElementById('radio-perempuan').checked = true;
+    else document.getElementById('radio-laki').checked = true;
     if (item.status === 'Aktif') document.getElementById('radio-aktif').checked = true;
     else document.getElementById('radio-nonaktif').checked = true;
   } else {
@@ -167,6 +169,7 @@ function openFormModal(id = null) {
     document.getElementById('input-nama').value = '';
     document.getElementById('input-nik').value = '';
     document.getElementById('input-dusun').value = '';
+    document.getElementById('radio-laki').checked = true;
     document.getElementById('radio-aktif').checked = true;
   }
 
@@ -185,6 +188,7 @@ async function saveData() {
   const nama = document.getElementById('input-nama').value.trim();
   const nik = document.getElementById('input-nik').value.trim();
   const dusun = document.getElementById('input-dusun').value;
+  const gender = document.getElementById('radio-laki').checked ? 'Laki-laki' : 'Perempuan';
   const status = document.getElementById('radio-aktif').checked ? 'Aktif' : 'Nonaktif';
 
   const errNik = document.getElementById('error-nik');
@@ -205,7 +209,7 @@ async function saveData() {
       const isDup = rawData.some(d => d.nik === nik && d.id !== id);
       if(isDup) { showToast('NIK sudah terdaftar!', 'error'); return; }
 
-      await whitelistCol.doc(id).update({ nama, nik, dusun, status });
+      await whitelistCol.doc(id).update({ nama, nik, dusun, gender, status });
       showToast('Data warga berhasil diperbarui.');
 
     } else {
@@ -218,6 +222,7 @@ async function saveData() {
         nama, 
         nik, 
         dusun, 
+        gender,
         status, 
         tanggal: today,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
