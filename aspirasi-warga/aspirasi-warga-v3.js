@@ -20,7 +20,8 @@ function renderTable() {
   }
 
   const filtered = dataAspirasi.filter(item => {
-    const matchFilter = activeFilter === 'semua' || item.status === activeFilter;
+    const matchFilter = activeFilter === 'semua' || 
+                        (activeFilter === 'kritis' ? item.kritis === true : item.status === activeFilter);
     const matchSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase()) || 
                         item.subjek.toLowerCase().includes(searchQuery.toLowerCase());
     return matchFilter && matchSearch;
@@ -36,6 +37,7 @@ function renderTable() {
       <td class="py-3 px-4 text-xs text-gray-600">${item.kategori}</td>
       <td class="py-3 px-4">
         <span class="badge-status status-${item.status}-bg text-[10px] font-bold px-2 py-0.5 rounded-full">${item.status.toUpperCase()}</span>
+        ${item.kritis ? '<span class="ml-1 bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-triangle-exclamation"></i> KRITIS</span>' : ''}
       </td>
       <td class="py-3 px-4">
         <button class="text-[#1e4d2b] hover:text-[#164020] text-sm"><i class="fa-solid fa-chevron-right"></i></button>
@@ -79,7 +81,7 @@ function updateDetailPanel() {
   
   const badge = document.getElementById('detail-badge');
   badge.className = `badge-status status-${activeReport.status}-bg text-[10px] font-bold px-2 py-0.5 rounded-full`;
-  badge.textContent = activeReport.status.toUpperCase();
+  badge.innerHTML = activeReport.status.toUpperCase() + (activeReport.kritis ? ' <span class="ml-1 bg-red-100 text-red-600 px-2 py-0.5 rounded-full"><i class="fa-solid fa-triangle-exclamation"></i> KRITIS</span>' : '');
 
   updateStatus(activeReport.status);
   resetAudio();
@@ -263,7 +265,7 @@ function initFirebase() {
 
     // Update stats
     let diproses = dataAspirasi.filter(d => d.status === 'proses').length;
-    let kritis = dataAspirasi.filter(d => d.status === 'kritis').length;
+    let kritis = dataAspirasi.filter(d => d.kritis === true).length;
     
     if (document.getElementById('stat-aspirasi-total')) {
       document.getElementById('stat-aspirasi-total').textContent = dataAspirasi.length;
@@ -284,7 +286,7 @@ async function seedDummyAspirasi() {
   if (snapshot.empty) {
     console.log("Database aspirasi kosong. Menyuntikkan data dummy awal...");
     const dummies = [
-      { nama: 'Bpk. Wawan Sutanto', waktu: 'Hari ini, 08:30 WIB', kategori: 'Infrastruktur & Jalan', status: 'kritis', subjek: 'Jembatan Dusun Wariagin Ambruk Sebagian', transkripsi: '"Assalamualaikum Pak Kades, ini saya Wawan dari Dusun Wariagin RT 3. Tolong segera ditindaklanjuti jembatan penghubung yang ke arah persawahan itu ambruk separuh gara-gara banjir semalam. Warga nggak bisa lewat bawa hasil panen. Bahaya sekali kalau dibiarkan, tolong secepatnya ada perbaikan sementara."', duration: 45, createdAt: firebase.firestore.FieldValue.serverTimestamp() },
+      { nama: 'Bpk. Wawan Sutanto', waktu: 'Hari ini, 08:30 WIB', kategori: 'Infrastruktur & Jalan', status: 'menunggu', kritis: true, subjek: 'Jembatan Dusun Wariagin Ambruk Sebagian', transkripsi: '"Assalamualaikum Pak Kades, ini saya Wawan dari Dusun Wariagin RT 3. Tolong segera ditindaklanjuti jembatan penghubung yang ke arah persawahan itu ambruk separuh gara-gara banjir semalam. Warga nggak bisa lewat bawa hasil panen. Bahaya sekali kalau dibiarkan, tolong secepatnya ada perbaikan sementara."', duration: 45, createdAt: firebase.firestore.FieldValue.serverTimestamp() },
       { nama: 'Ibu Siti Aminah', waktu: 'Kemarin, 14:15 WIB', kategori: 'Bantuan Sosial', status: 'proses', subjek: 'Distribusi Bansos Belum Merata', transkripsi: '"Pak, tolong dicek lagi data penerima bansos di Dusun Krajan. Masih banyak lansia yang belum dapat, malah yang mampu yang dapat. Mohon didata ulang."', duration: 28, createdAt: firebase.firestore.FieldValue.serverTimestamp() },
       { nama: 'Sdr. Budi Setiawan', waktu: '10 Okt 2024, 09:00 WIB', kategori: 'Keamanan Lingkungan', status: 'selesai', subjek: 'Permintaan Lampu Penerangan Jalan', transkripsi: '"Alhamdulillah lampu jalan di pertigaan dekat balai desa sudah dipasang. Terima kasih atas respon cepatnya dari pihak desa."', duration: 15, createdAt: firebase.firestore.FieldValue.serverTimestamp() },
     ];
