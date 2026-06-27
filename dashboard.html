@@ -8,6 +8,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="stylesheet" href="dashboard.css"/>
+  
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="shared/firebase-config.js" defer></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
@@ -20,7 +25,7 @@
         <img src="logo/logo.png" alt="ASPIRA AI" class="w-9 h-9 rounded-md object-cover"/>
         <div>
           <p class="font-bold text-sm leading-tight">ASPIRA AI</p>
-          <p class="text-green-300 text-[10px]">Governance Portal</p>
+          <p class="text-green-300 text-[10px]">Portal Tata Kelola</p>
         </div>
       </div>
     </div>
@@ -85,7 +90,7 @@
             <span class="badge-bulan text-[10px] font-semibold px-2 py-0.5 rounded-full">+12% BULAN INI</span>
           </div>
           <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">Total Aspirasi Desa</p>
-          <p class="text-3xl font-bold text-gray-800 mt-1">1,284</p>
+          <p class="text-3xl font-bold text-gray-800 mt-1" id="stat-aspirasi-total">0</p>
         </div>
 
         <!-- Card 2: Laporan Kritis -->
@@ -97,7 +102,7 @@
             <span class="badge-prioritas text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">PRIORITAS</span>
           </div>
           <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">Laporan Kritis</p>
-          <p class="text-3xl font-bold text-gray-800 mt-1">18</p>
+          <p class="text-3xl font-bold text-gray-800 mt-1" id="stat-aspirasi-kritis">0</p>
         </div>
 
         <!-- Card 3: Total UMKM -->
@@ -109,7 +114,7 @@
             <span class="text-[#1e4d2b] border border-green-600 text-[10px] font-semibold px-2 py-0.5 rounded-full">SENSUS 2024</span>
           </div>
           <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">Total Pelaku UMKM</p>
-          <p class="text-3xl font-bold text-gray-800 mt-1">342</p>
+          <p class="text-3xl font-bold text-gray-800 mt-1" id="stat-umkm-total">0</p>
         </div>
       </div>
 
@@ -127,37 +132,37 @@
           <div>
             <div class="flex justify-between items-center mb-2">
               <span class="text-sm font-semibold text-gray-700">Ekonomi &amp; UMKM</span>
-              <span class="text-sm font-bold text-[#1e4d2b]">420 Aspirasi</span>
+              <span class="text-sm font-bold text-[#1e4d2b]" id="cat-ekonomi-count">0 Aspirasi</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill bg-[#1e4d2b]" style="width:0%" data-target="82%"></div>
+              <div id="cat-ekonomi-bar" class="progress-fill bg-[#1e4d2b]" style="width:0%" data-target="0%"></div>
             </div>
           </div>
           <div>
             <div class="flex justify-between items-center mb-2">
               <span class="text-sm font-semibold text-gray-700">Lingkungan Hidup</span>
-              <span class="text-sm font-bold text-amber-600">312 Aspirasi</span>
+              <span class="text-sm font-bold text-amber-600" id="cat-lingkungan-count">0 Aspirasi</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill bg-amber-600" style="width:0%" data-target="61%"></div>
+              <div id="cat-lingkungan-bar" class="progress-fill bg-amber-600" style="width:0%" data-target="0%"></div>
             </div>
           </div>
           <div>
             <div class="flex justify-between items-center mb-2">
               <span class="text-sm font-semibold text-gray-700">Kesehatan Masyarakat</span>
-              <span class="text-sm font-bold text-gray-600">245 Aspirasi</span>
+              <span class="text-sm font-bold text-gray-600" id="cat-kesehatan-count">0 Aspirasi</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill bg-gray-500" style="width:0%" data-target="48%"></div>
+              <div id="cat-kesehatan-bar" class="progress-fill bg-gray-500" style="width:0%" data-target="0%"></div>
             </div>
           </div>
           <div>
             <div class="flex justify-between items-center mb-2">
               <span class="text-sm font-semibold text-gray-700">Keamanan &amp; Ketertiban</span>
-              <span class="text-sm font-bold text-gray-600">188 Aspirasi</span>
+              <span class="text-sm font-bold text-gray-600" id="cat-keamanan-count">0 Aspirasi</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill bg-gray-400" style="width:0%" data-target="37%"></div>
+              <div id="cat-keamanan-bar" class="progress-fill bg-gray-400" style="width:0%" data-target="0%"></div>
             </div>
           </div>
         </div>

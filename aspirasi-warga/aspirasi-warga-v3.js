@@ -261,6 +261,16 @@ function initFirebase() {
       activeReport = dataAspirasi.length > 0 ? dataAspirasi[0] : null;
     }
 
+    // Update stats
+    let diproses = dataAspirasi.filter(d => d.status === 'proses').length;
+    let kritis = dataAspirasi.filter(d => d.status === 'kritis').length;
+    
+    if (document.getElementById('stat-aspirasi-total')) {
+      document.getElementById('stat-aspirasi-total').textContent = dataAspirasi.length;
+      document.getElementById('stat-aspirasi-proses').textContent = diproses;
+      document.getElementById('stat-aspirasi-kritis').textContent = kritis;
+    }
+
     renderTable();
     if (activeReport) updateDetailPanel();
   }, (error) => {

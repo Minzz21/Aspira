@@ -13,4 +13,4 @@ const firebaseConfig = {
 
 // Inisialisasi Firebase
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+window.db = firebase.firestore();

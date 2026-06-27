@@ -1,14 +1,96 @@
 /* ── Profil Desa JS ── */
 
-const wilayahData = [
-  { id: 'dusun1', wilayah: 'Dusun I - Krajan', umkm: 128, tenaga: 312, omzet: '4.2 Juta', growth: 'up' },
-  { id: 'dusun2', wilayah: 'Dusun II - Sidomulyo', umkm: 97, tenaga: 241, omzet: '3.1 Juta', growth: 'mid' },
-  { id: 'dusun3', wilayah: 'Dusun III - Wariagin', umkm: 117, tenaga: 289, omzet: '3.8 Juta', growth: 'up' },
-];
-
+let wilayahData = [];
 let currentPage = 1;
 const rowsPerPage = 3;
-let filteredData = [...wilayahData];
+let filteredData = [];
+let allUmkmData = [];
+
+function loadUMKMData() {
+  const umkmCol = db.collection('umkm');
+  umkmCol.onSnapshot((snapshot) => {
+    const umkmCountByWilayah = {};
+    allUmkmData = [];
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      data.id = doc.id;
+      allUmkmData.push(data);
+
+      const wilayah = data.wilayah || 'Tidak Diketahui';
+      if (!umkmCountByWilayah[wilayah]) {
+        umkmCountByWilayah[wilayah] = 0;
+      }
+      umkmCountByWilayah[wilayah]++;
+    });
+
+    wilayahData = Object.keys(umkmCountByWilayah).map(w => ({
+      wilayah: w,
+      umkm: umkmCountByWilayah[w]
+    }));
+    
+    wilayahData.sort((a, b) => a.wilayah.localeCompare(b.wilayah));
+    filterTable();
+    renderSektorUnggulan(allUmkmData);
+  }, (error) => {
+    console.error('Error memuat data UMKM:', error);
+  });
+}
+
+function renderSektorUnggulan(data) {
+  const container = document.getElementById('sektor-unggulan-list');
+  if (!container) return;
+
+  if (data.length === 0) {
+    container.innerHTML = '<p class="text-xs text-green-200 mt-2">Belum ada data UMKM.</p>';
+    return;
+  }
+
+  const counts = {};
+  data.forEach(item => {
+    const s = item.sektor_usaha || 'Lainnya';
+    counts[s] = (counts[s] || 0) + 1;
+  });
+
+  const sortedSektors = Object.keys(counts).map(k => ({
+    name: k,
+    count: counts[k]
+  })).sort((a, b) => b.count - a.count); // Show all sectors
+
+  const styleMap = {
+    'Kuliner': { icon: 'fa-utensils', textClass: 'text-green-300', bgClass: 'bg-green-400' },
+    'Kerajinan': { icon: 'fa-hands-holding', textClass: 'text-amber-300', bgClass: 'bg-amber-400' },
+    'Fashion': { icon: 'fa-shirt', textClass: 'text-blue-300', bgClass: 'bg-blue-400' },
+    'Jasa': { icon: 'fa-wrench', textClass: 'text-purple-300', bgClass: 'bg-purple-400' },
+    'Lainnya': { icon: 'fa-box', textClass: 'text-gray-300', bgClass: 'bg-gray-400' }
+  };
+
+  let html = '';
+  sortedSektors.forEach((s, index) => {
+    const pct = Math.round((s.count / data.length) * 100);
+    const style = styleMap[s.name] || styleMap['Lainnya'];
+    const mbClass = index === sortedSektors.length - 1 ? 'mb-5' : 'mb-3';
+
+    html += `
+      <div class="${mbClass}">
+        <div class="flex justify-between items-center mb-1">
+          <span class="flex items-center gap-1.5 text-xs font-medium"><i class="fa-solid ${style.icon} ${style.textClass} text-[10px]"></i> ${s.name}</span>
+          <span class="text-xs font-bold">${s.count} Unit</span>
+        </div>
+        <div class="umkm-bar-track"><div class="umkm-bar-fill ${style.bgClass}" style="width:0%" data-target="${pct}%"></div></div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+  
+  // Re-trigger animation for the new bars
+  setTimeout(() => {
+    container.querySelectorAll('[data-target]').forEach(el => {
+      el.style.width = el.dataset.target;
+    });
+  }, 100);
+}
 
 function renderWilayahTable() {
   const tbody = document.getElementById('wilayah-table-body');
@@ -16,30 +98,27 @@ function renderWilayahTable() {
   const start = (currentPage - 1) * rowsPerPage;
   const paged = filteredData.slice(start, start + rowsPerPage);
 
-  tbody.innerHTML = paged.map(row => `
-    <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
-      <td class="py-3 pr-4 font-semibold text-gray-700">${row.wilayah}</td>
-      <td class="py-3 pr-4 text-gray-600">${row.umkm} UMKM</td>
-      <td class="py-3 pr-4 text-gray-600">${row.tenaga} Orang</td>
-      <td class="py-3 pr-4 text-gray-600">Rp ${row.omzet}</td>
-      <td class="py-3 pr-4">
-        <span class="badge-growth-${row.growth}">
-          ${row.growth === 'up' ? '▲ Tumbuh' : row.growth === 'mid' ? '● Stabil' : '▼ Turun'}
-        </span>
-      </td>
-      <td class="py-3">
-        <button onclick="lihatDetailWilayah('${row.wilayah}')" class="text-[#1e4d2b] text-xs font-medium hover:underline">Detail</button>
-      </td>
-    </tr>
-  `).join('');
+  if (paged.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-gray-500 text-sm">Belum ada data UMKM</td></tr>`;
+  } else {
+    tbody.innerHTML = paged.map(row => `
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
+        <td class="py-3 pr-4 font-semibold text-gray-700">${row.wilayah}</td>
+        <td class="py-3 pr-4 text-gray-600">${row.umkm} UMKM</td>
+        <td class="py-3">
+          <button onclick="lihatDetailWilayah('${row.wilayah}')" class="text-[#1e4d2b] text-xs font-medium hover:underline">Detail</button>
+        </td>
+      </tr>
+    `).join('');
+  }
 
   document.getElementById('pagination-info').textContent =
-    `Menampilkan ${paged.length} dari ${filteredData.length} Dusun`;
+    `Menampilkan ${paged.length} dari ${filteredData.length} Wilayah`;
 }
 
 function filterTable() {
   const dusun = document.getElementById('filter-dusun').value;
-  filteredData = dusun === 'semua' ? [...wilayahData] : wilayahData.filter(w => w.id === dusun);
+  filteredData = dusun === 'semua' ? [...wilayahData] : wilayahData.filter(w => w.wilayah === dusun);
   currentPage = 1;
   renderWilayahTable();
 }
@@ -58,43 +137,223 @@ function animateBars() {
   }, 400);
 }
 
-function initMap() {
-  const map = L.map('map').setView([-7.250445, 112.768845], 14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-  const markers = [
-    { lat: -7.248, lng: 112.766, label: 'Kantor Desa' },
-    { lat: -7.252, lng: 112.771, label: 'Pasar Desa' },
-    { lat: -7.246, lng: 112.774, label: 'Balai Warga' },
-  ];
-  markers.forEach(m => {
-    L.marker([m.lat, m.lng]).addTo(map).bindPopup(m.label);
-  });
+
+
+function closeDynamicModal() {
+  document.getElementById('modal-dynamic-umkm').classList.add('hidden');
 }
 
 function lihatDetailWilayah(nama) {
-  showModal('Detail Wilayah', `Menampilkan detail UMKM untuk ${nama}.`);
+  const modal = document.getElementById('modal-dynamic-umkm');
+  const title = document.getElementById('modal-dynamic-title');
+  const body = document.getElementById('modal-dynamic-body');
+  const btnBack = document.getElementById('btn-back-dynamic');
+
+  title.textContent = `UMKM di ${nama}`;
+  btnBack.classList.add('hidden');
+
+  const wilayahUmkm = allUmkmData.filter(u => u.wilayah === nama);
+
+  if (wilayahUmkm.length === 0) {
+    body.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">Belum ada UMKM terdaftar di wilayah ini.</p>';
+  } else {
+    body.innerHTML = `
+      <div class="space-y-3">
+        ${wilayahUmkm.map(u => `
+          <div onclick="lihatDetailUMKM('${u.id}', '${nama}')" class="p-4 border border-gray-100 rounded-xl hover:border-green-300 hover:shadow-sm transition cursor-pointer bg-white group">
+            <div class="flex justify-between items-center mb-1">
+              <h4 class="font-bold text-gray-800 group-hover:text-[#1e4d2b] transition">${u.nama_umkm}</h4>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-600">${u.sektor_usaha}</span>
+            </div>
+            <p class="text-xs text-gray-500"><i class="fa-regular fa-user mr-1"></i> ${u.nama_pemilik}</p>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+  
+  modal.classList.remove('hidden');
 }
+
+function lihatDetailUMKM(id, backWilayah) {
+  const umkm = allUmkmData.find(u => u.id === id);
+  if (!umkm) return;
+
+  const title = document.getElementById('modal-dynamic-title');
+  const body = document.getElementById('modal-dynamic-body');
+  const btnBack = document.getElementById('btn-back-dynamic');
+
+  title.textContent = 'Informasi Lengkap UMKM';
+  btnBack.classList.remove('hidden');
+  btnBack.onclick = () => lihatDetailWilayah(backWilayah);
+
+  let tglDaftar = 'Tidak diketahui';
+  if (umkm.tanggal_registrasi && umkm.tanggal_registrasi.toDate) {
+    tglDaftar = umkm.tanggal_registrasi.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  body.innerHTML = `
+    <div class="space-y-4">
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 flex justify-between items-start">
+        <div>
+          <h3 class="text-xl font-bold text-[#1e4d2b] mb-1">${umkm.nama_umkm}</h3>
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700 inline-block">${umkm.sektor_usaha}</span>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="editUMKM('${umkm.id}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition" title="Edit">
+            <i class="fa-solid fa-pen text-xs"></i>
+          </button>
+          <button onclick="hapusUMKM('${umkm.id}', '${umkm.nama_umkm}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition" title="Hapus">
+            <i class="fa-solid fa-trash text-xs"></i>
+          </button>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">Pemilik</p>
+          <p class="text-sm font-medium text-gray-800">${umkm.nama_pemilik}</p>
+        </div>
+        <div>
+          <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">Wilayah</p>
+          <p class="text-sm font-medium text-gray-800">${umkm.wilayah}</p>
+        </div>
+      </div>
+      <div>
+        <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">Alamat Lengkap</p>
+        <p class="text-sm text-gray-700 leading-relaxed mt-1">${umkm.alamat_lengkap || '-'}</p>
+      </div>
+      <div class="border-t border-gray-100 pt-3">
+        <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">Tanggal Registrasi</p>
+        <p class="text-xs text-gray-600 mt-1"><i class="fa-regular fa-calendar mr-1"></i> ${tglDaftar}</p>
+      </div>
+    </div>
+  `;
+}
+
 function eksporData() {
-  showModal('Export Data', 'Data UMKM sedang diekspor ke format Excel.');
+  alert('Data UMKM sedang diekspor ke format Excel.');
 }
+
 function registrasiUMKM() {
-  showModal('Registrasi UMKM', 'Formulir registrasi UMKM baru akan segera dibuka.');
+  document.getElementById('form-modal-umkm-title').textContent = 'Registrasi UMKM Baru';
+  document.getElementById('input-id-umkm').value = '';
+  document.getElementById('form-modal-umkm').classList.remove('hidden');
 }
-function showModal(title, body) {
-  document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-body').textContent  = body;
-  document.getElementById('modal').classList.remove('hidden');
+
+function closeFormUMKM() {
+  document.getElementById('form-modal-umkm').classList.add('hidden');
+  document.getElementById('input-id-umkm').value = '';
+  document.getElementById('input-nama-umkm').value = '';
+  document.getElementById('input-pemilik-umkm').value = '';
+  document.getElementById('input-sektor-umkm').value = '';
+  document.getElementById('input-wilayah-umkm').value = '';
+  document.getElementById('input-alamat-umkm').value = '';
 }
-function closeModal() {
-  document.getElementById('modal').classList.add('hidden');
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-message').textContent = message;
+  toast.classList.remove('hidden');
+  
+  setTimeout(() => {
+    toast.classList.add('hidden');
+  }, 3000);
+}
+
+function simpanUMKM() {
+  const id = document.getElementById('input-id-umkm').value;
+  const nama = document.getElementById('input-nama-umkm').value.trim();
+  const pemilik = document.getElementById('input-pemilik-umkm').value.trim();
+  const sektor = document.getElementById('input-sektor-umkm').value;
+  const wilayah = document.getElementById('input-wilayah-umkm').value;
+  const alamat = document.getElementById('input-alamat-umkm').value.trim();
+
+  if (!nama || !pemilik || !sektor || !wilayah || !alamat) {
+    alert('Harap lengkapi semua data formulir!');
+    return;
+  }
+
+  const umkmData = {
+    nama_umkm: nama,
+    nama_pemilik: pemilik,
+    sektor_usaha: sektor,
+    wilayah: wilayah,
+    alamat_lengkap: alamat
+  };
+
+  if (id) {
+    // Edit existing
+    db.collection('umkm').doc(id).update(umkmData)
+      .then(() => {
+        closeFormUMKM();
+        showToast('Data UMKM berhasil diperbarui!');
+        closeDynamicModal();
+      })
+      .catch(error => {
+        console.error('Error update UMKM:', error);
+        alert('Terjadi kesalahan saat memperbarui data UMKM.');
+      });
+  } else {
+    // Tambah baru
+    umkmData.tanggal_registrasi = firebase.firestore.FieldValue.serverTimestamp();
+    db.collection('umkm').add(umkmData)
+      .then(() => {
+        closeFormUMKM();
+        showToast('UMKM berhasil diregistrasi!');
+      })
+      .catch(error => {
+        console.error('Error menambah UMKM:', error);
+        alert('Terjadi kesalahan saat menyimpan data UMKM.');
+      });
+  }
+}
+
+function editUMKM(id) {
+  const umkm = allUmkmData.find(u => u.id === id);
+  if (!umkm) return;
+
+  document.getElementById('form-modal-umkm-title').textContent = 'Edit Data UMKM';
+  document.getElementById('input-id-umkm').value = umkm.id;
+  document.getElementById('input-nama-umkm').value = umkm.nama_umkm;
+  document.getElementById('input-pemilik-umkm').value = umkm.nama_pemilik;
+  document.getElementById('input-sektor-umkm').value = umkm.sektor_usaha;
+  document.getElementById('input-wilayah-umkm').value = umkm.wilayah;
+  document.getElementById('input-alamat-umkm').value = umkm.alamat_lengkap;
+
+  document.getElementById('form-modal-umkm').classList.remove('hidden');
+}
+
+let deleteUmkmId = null;
+
+function hapusUMKM(id, nama) {
+  deleteUmkmId = id;
+  document.getElementById('delete-nama-umkm').textContent = nama;
+  document.getElementById('delete-modal-umkm').classList.remove('hidden');
+}
+
+function closeDeleteModalUMKM() {
+  deleteUmkmId = null;
+  document.getElementById('delete-modal-umkm').classList.add('hidden');
+}
+
+function confirmDeleteUMKM() {
+  if (!deleteUmkmId) return;
+
+  db.collection('umkm').doc(deleteUmkmId).delete()
+    .then(() => {
+      closeDeleteModalUMKM();
+      closeDynamicModal();
+      showToast('Data UMKM berhasil dihapus!');
+    })
+    .catch(error => {
+      console.error('Error delete UMKM:', error);
+      alert('Gagal menghapus data UMKM.');
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  renderWilayahTable();
   animateBars();
-  initMap();
+  loadUMKMData();
   loadPopulationData();
 });
 
