@@ -6,6 +6,8 @@ const aspirasiCol = db.collection('aspirasi');
 let activeFilter = 'semua';
 let searchQuery = '';
 let activeReport = dataAspirasi[0];
+let currentPage = 1;
+const itemsPerPage = 5;
 
 function renderTable() {
   const tbody = document.getElementById('aspirasi-table');
@@ -16,6 +18,8 @@ function renderTable() {
     document.getElementById('detail-subjek').textContent = "-";
     document.getElementById('detail-pelapor').textContent = "-";
     document.getElementById('detail-transkripsi').textContent = "Tidak ada laporan yang dipilih.";
+    document.getElementById('page-info').textContent = "Menampilkan 0-0 dari 0 laporan";
+    document.getElementById('pagination-container').innerHTML = "";
     return;
   }
 
@@ -27,8 +31,26 @@ function renderTable() {
     return matchFilter && matchSearch;
   });
 
-  tbody.innerHTML = filtered.map(item => `
-    <tr class="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer ${item.id === activeReport.id ? 'bg-green-50/30' : ''}" onclick="selectReport('${item.id}')">
+  const totalItems = filtered.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  
+  const paginatedItems = filtered.slice(startIndex, endIndex);
+
+  if (totalItems === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500 text-sm">Tidak ada laporan yang cocok dengan filter/pencarian.</td></tr>`;
+      document.getElementById('page-info').textContent = "Menampilkan 0-0 dari 0 laporan";
+      document.getElementById('pagination-container').innerHTML = "";
+      return;
+  }
+
+  tbody.innerHTML = paginatedItems.map(item => `
+    <tr class="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer ${item.id === activeReport?.id ? 'bg-green-50/30' : ''}" onclick="selectReport('${item.id}')">
       <td class="py-3 px-4 text-xs font-mono text-gray-500">${item.id}</td>
       <td class="py-3 px-4">
         <p class="text-sm font-semibold text-gray-800">${item.nama}</p>
@@ -44,10 +66,39 @@ function renderTable() {
       </td>
     </tr>
   `).join('');
+
+  document.getElementById('page-info').textContent = `Menampilkan ${startIndex + 1}-${endIndex} dari ${totalItems} laporan`;
+  
+  // render pagination controls
+  let paginationHtml = `
+    <button onclick="changePage(-1)" class="px-2 py-1 rounded border border-gray-200 hover:bg-white" ${currentPage === 1 ? 'disabled style="opacity:0.5"' : ''}>&lt;</button>
+  `;
+  for(let i=1; i<=totalPages; i++) {
+     if (i === currentPage) {
+       paginationHtml += `<button class="px-2 py-1 rounded border border-gray-200 bg-white font-bold">${i}</button>`;
+     } else {
+       paginationHtml += `<button onclick="goToPage(${i})" class="px-2 py-1 rounded border border-gray-200 hover:bg-white">${i}</button>`;
+     }
+  }
+  paginationHtml += `
+    <button onclick="changePage(1)" class="px-2 py-1 rounded border border-gray-200 hover:bg-white" ${currentPage === totalPages ? 'disabled style="opacity:0.5"' : ''}>&gt;</button>
+  `;
+  document.getElementById('pagination-container').innerHTML = paginationHtml;
+}
+
+function changePage(dir) {
+    currentPage += dir;
+    renderTable();
+}
+
+function goToPage(page) {
+    currentPage = page;
+    renderTable();
 }
 
 function setFilter(filter) {
   activeFilter = filter;
+  currentPage = 1;
   ['semua', 'kritis', 'selesai'].forEach(f => {
     const btn = document.getElementById('filter-' + f);
     if(f === filter) {
@@ -61,6 +112,7 @@ function setFilter(filter) {
 
 function searchLaporan(val) {
   searchQuery = val;
+  currentPage = 1;
   renderTable();
 }
 
