@@ -95,47 +95,98 @@ document.addEventListener('DOMContentLoaded', () => {
   renderWilayahTable();
   animateBars();
   initMap();
-  animatePopulationCounters();
-  animateGenderRing();
+  loadPopulationData();
 });
 
-/* ── Population Infographic Animations ── */
+/* ── Population Infographic – Firebase Sync ── */
 
-function animatePopulationCounters() {
-  const counters = document.querySelectorAll('.pop-counter');
-  counters.forEach(counter => {
-    const target = parseInt(counter.dataset.count);
-    if (isNaN(target)) return;
-    const duration = 1800;
-    const startTime = performance.now();
+function loadPopulationData() {
+  const whitelistCol = db.collection('whitelist');
 
-    function update(currentTime) {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // easeOutExpo for smooth deceleration
-      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      const current = Math.round(eased * target);
-      counter.textContent = current.toLocaleString('id-ID');
-      if (progress < 1) requestAnimationFrame(update);
-    }
-    setTimeout(() => requestAnimationFrame(update), 300);
+  // onSnapshot = real-time listener, infografis auto-update ketika whitelist berubah
+  whitelistCol.onSnapshot((snapshot) => {
+    let total = 0;
+    let male = 0;
+    let female = 0;
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      total++;
+      if (data.gender === 'Perempuan') female++;
+      else male++; // default ke laki-laki jika field gender belum ada
+    });
+
+    updatePopulationInfographic(total, male, female);
+  }, (error) => {
+    console.error('Error memuat data penduduk:', error);
+    document.getElementById('stat-total').textContent = 'Error';
   });
 }
 
-function animateGenderRing() {
-  setTimeout(() => {
-    const male = document.querySelector('.pop-ring-male');
-    const female = document.querySelector('.pop-ring-female');
-    if (male) {
-      const maleVal = parseFloat(male.dataset.target);
-      male.setAttribute('stroke-dasharray', `${maleVal} ${100 - maleVal}`);
-    }
-    if (female) {
-      const femaleVal = parseFloat(female.dataset.target);
-      const offset = parseFloat(female.dataset.offset || 0);
-      female.setAttribute('stroke-dasharray', `${femaleVal} ${100 - femaleVal}`);
-      female.setAttribute('stroke-dashoffset', `-${offset}`);
-    }
-  }, 500);
+function updatePopulationInfographic(total, male, female) {
+  const malePct = total > 0 ? ((male / total) * 100) : 0;
+  const femalePct = total > 0 ? ((female / total) * 100) : 0;
+  const ratio = female > 0 ? (male / female).toFixed(2) : '–';
+
+  // Animate counters
+  animateCounter('stat-total', total);
+  animateCounter('stat-male', male);
+  animateCounter('stat-female', female);
+
+  // Update subtitle
+  document.getElementById('stat-total-sub').innerHTML =
+    `<i class="fa-solid fa-database mr-1"></i>${total} warga terdaftar`;
+
+  // Update percentages
+  document.getElementById('stat-male-pct').textContent =
+    `${malePct.toFixed(1)}% dari total`;
+  document.getElementById('stat-female-pct').textContent =
+    `${femalePct.toFixed(1)}% dari total`;
+
+  // Update ratio text
+  document.getElementById('ratio-text').textContent = ratio;
+
+  // Update gender ring SVG
+  const ringMale = document.querySelector('.pop-ring-male');
+  const ringFemale = document.querySelector('.pop-ring-female');
+
+  if (ringMale) {
+    ringMale.dataset.target = malePct.toFixed(1);
+    ringMale.setAttribute('stroke-dasharray', `${malePct} ${100 - malePct}`);
+  }
+  if (ringFemale) {
+    ringFemale.dataset.target = femalePct.toFixed(1);
+    ringFemale.dataset.offset = malePct.toFixed(1);
+    ringFemale.setAttribute('stroke-dasharray', `${femalePct} ${100 - femalePct}`);
+    ringFemale.setAttribute('stroke-dashoffset', `-${malePct}`);
+  }
+
+  // Update per-dusun distribution bars (if data has dusun breakdown)
+  updateDusunBreakdown();
 }
+
+function animateCounter(elementId, target) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+
+  const duration = 1400;
+  const startVal = parseInt(el.textContent.replace(/\D/g, '')) || 0;
+  const startTime = performance.now();
+
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+    const current = Math.round(startVal + (target - startVal) * eased);
+    el.textContent = current.toLocaleString('id-ID');
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+function updateDusunBreakdown() {
+  // Future: bisa query per-dusun dari whitelist untuk breakdown
+  // Saat ini distribusi usia tetap statis karena data whitelist belum punya field usia
+}
+
 

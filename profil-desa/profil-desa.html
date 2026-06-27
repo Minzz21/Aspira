@@ -11,6 +11,10 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="../dashboard.css"/>
   <link rel="stylesheet" href="profil-desa.css"/>
+
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
@@ -142,10 +146,10 @@
             </div>
             <div>
               <h2 class="font-semibold text-gray-800">Infografis Jumlah Penduduk</h2>
-              <p class="text-gray-400 text-[10px] mt-0.5">Data kependudukan desa berdasarkan sensus terakhir</p>
+              <p class="text-gray-400 text-[10px] mt-0.5">Data kependudukan real-time dari database Whitelist Warga</p>
             </div>
           </div>
-          <span class="bg-green-50 text-[#1e4d2b] text-[10px] font-bold px-2.5 py-1 rounded-full border border-green-200">Semester II 2024</span>
+          <span class="bg-green-50 text-[#1e4d2b] text-[10px] font-bold px-2.5 py-1 rounded-full border border-green-200" id="pop-badge">Real-time</span>
         </div>
 
         <!-- Hero Stats Row -->
@@ -154,24 +158,24 @@
             <div class="absolute -top-3 -right-3 w-16 h-16 bg-white/5 rounded-full"></div>
             <div class="absolute -bottom-2 -right-6 w-12 h-12 bg-white/5 rounded-full"></div>
             <p class="text-green-200 text-[10px] font-medium mb-1">Total Penduduk</p>
-            <p class="text-2xl font-bold pop-counter" data-count="4827">0</p>
-            <p class="text-green-300 text-[10px] mt-1"><i class="fa-solid fa-arrow-trend-up mr-1"></i>+2.1% dari tahun lalu</p>
+            <p class="text-2xl font-bold" id="stat-total">–</p>
+            <p class="text-green-300 text-[10px] mt-1" id="stat-total-sub"><i class="fa-solid fa-database mr-1"></i>Dari Whitelist Warga</p>
           </div>
           <div class="pop-stat-card bg-white rounded-xl p-4 border border-blue-100 shadow-sm">
             <div class="flex items-center gap-1.5 mb-1">
               <i class="fa-solid fa-mars text-blue-500 text-[10px]"></i>
               <p class="text-blue-500 text-[10px] font-medium">Laki-laki</p>
             </div>
-            <p class="text-2xl font-bold text-gray-800 pop-counter" data-count="2451">0</p>
-            <p class="text-blue-400 text-[10px] mt-1">50.8% dari total</p>
+            <p class="text-2xl font-bold text-gray-800" id="stat-male">–</p>
+            <p class="text-blue-400 text-[10px] mt-1" id="stat-male-pct">–</p>
           </div>
           <div class="pop-stat-card bg-white rounded-xl p-4 border border-pink-100 shadow-sm">
             <div class="flex items-center gap-1.5 mb-1">
               <i class="fa-solid fa-venus text-pink-500 text-[10px]"></i>
               <p class="text-pink-500 text-[10px] font-medium">Perempuan</p>
             </div>
-            <p class="text-2xl font-bold text-gray-800 pop-counter" data-count="2376">0</p>
-            <p class="text-pink-400 text-[10px] mt-1">49.2% dari total</p>
+            <p class="text-2xl font-bold text-gray-800" id="stat-female">–</p>
+            <p class="text-pink-400 text-[10px] mt-1" id="stat-female-pct">–</p>
           </div>
         </div>
 
@@ -224,7 +228,7 @@
                   stroke-linecap="round" transform="rotate(-90 18 18)"></circle>
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <span class="text-lg font-bold text-gray-800">1.03</span>
+                <span class="text-lg font-bold text-gray-800" id="ratio-text">–</span>
                 <span class="text-[9px] text-gray-400 font-medium">Rasio L:P</span>
               </div>
             </div>
@@ -337,6 +341,7 @@
   </div>
 </div>
 
+<script src="../shared/firebase-config.js" defer></script>
 <script src="profil-desa.js" defer></script>
 </body>
 </html>
