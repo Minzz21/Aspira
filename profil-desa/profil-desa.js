@@ -95,4 +95,47 @@ document.addEventListener('DOMContentLoaded', () => {
   renderWilayahTable();
   animateBars();
   initMap();
+  animatePopulationCounters();
+  animateGenderRing();
 });
+
+/* ── Population Infographic Animations ── */
+
+function animatePopulationCounters() {
+  const counters = document.querySelectorAll('.pop-counter');
+  counters.forEach(counter => {
+    const target = parseInt(counter.dataset.count);
+    if (isNaN(target)) return;
+    const duration = 1800;
+    const startTime = performance.now();
+
+    function update(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOutExpo for smooth deceleration
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const current = Math.round(eased * target);
+      counter.textContent = current.toLocaleString('id-ID');
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    setTimeout(() => requestAnimationFrame(update), 300);
+  });
+}
+
+function animateGenderRing() {
+  setTimeout(() => {
+    const male = document.querySelector('.pop-ring-male');
+    const female = document.querySelector('.pop-ring-female');
+    if (male) {
+      const maleVal = parseFloat(male.dataset.target);
+      male.setAttribute('stroke-dasharray', `${maleVal} ${100 - maleVal}`);
+    }
+    if (female) {
+      const femaleVal = parseFloat(female.dataset.target);
+      const offset = parseFloat(female.dataset.offset || 0);
+      female.setAttribute('stroke-dasharray', `${femaleVal} ${100 - femaleVal}`);
+      female.setAttribute('stroke-dashoffset', `-${offset}`);
+    }
+  }, 500);
+}
+

@@ -45,3 +45,50 @@
 
 .leaflet-control-attribution { font-size: 9px !important; }
 .sdm-row { padding: 4px 0; }
+
+/* ── Population Infographic Styles ─────────────────────── */
+
+.pop-stat-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.pop-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.pop-bar-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: #f3f4f6;
+  overflow: hidden;
+}
+.pop-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 1.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.pop-gender-ring {
+  transition: transform 0.3s ease;
+}
+.pop-gender-ring:hover {
+  transform: scale(1.05);
+}
+
+.pop-ring-male,
+.pop-ring-female {
+  transition: stroke-dasharray 1.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.pop-gender-svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.06));
+}
+
+@keyframes popCountUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pop-counter {
+  animation: popCountUp 0.6s ease forwards;
+}
+
