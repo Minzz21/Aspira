@@ -89,8 +89,12 @@ async function handleLogin(e) {
     if (isAuthenticated) {
       // Simpan status login sementara di localStorage agar bisa dibaca halaman lain
       localStorage.setItem('aspira_admin_logged_in', 'true');
+      localStorage.setItem('aspira_admin_id', adminData.id);
       localStorage.setItem('aspira_admin_name', adminData.nama || 'Administrator');
       localStorage.setItem('aspira_admin_nik', adminData.nik);
+      localStorage.setItem('aspira_admin_role', adminData.role || 'Administrator');
+      localStorage.setItem('aspira_admin_email', adminData.email || '');
+      localStorage.setItem('aspira_admin_telp', adminData.telp || '');
       
       // Redirect ke Dashboard Utama
       window.location.href = 'dashboard.html';

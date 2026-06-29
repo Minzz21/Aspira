@@ -1,0 +1,80 @@
+/* Sidebar Collapsible Styles */
+
+/* Open state is default Tailwind classes (w-56) */
+
+/* Collapsed State applied to html tag */
+.sidebar-is-collapsed #sidebar {
+  width: 5rem !important; /* w-20 */
+}
+
+/* Hide text when collapsed */
+.sidebar-is-collapsed #sidebar .sidebar-text {
+  display: none !important;
+}
+
+/* Adjust padding and centering when collapsed */
+.sidebar-is-collapsed #sidebar .sidebar-header {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar-is-collapsed #sidebar .sidebar-item {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar-is-collapsed #sidebar .sidebar-item i {
+  font-size: 1.25rem; /* Make icons slightly larger when collapsed */
+  margin: 0 !important;
+}
+
+/* Rotate toggle icon when collapsed */
+.sidebar-is-collapsed #sidebar-toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* Bottom user profile section */
+.sidebar-is-collapsed #sidebar .sidebar-user-section {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Tooltip on hover when collapsed (optional enhancement) */
+.sidebar-is-collapsed #sidebar .sidebar-item {
+  position: relative;
+}
+
+.sidebar-is-collapsed #sidebar .sidebar-item:hover::after {
+  content: attr(data-title);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 10px;
+  background-color: #1f2937; /* gray-800 */
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* Sidebar Specific Scrollbar (Dark Theme) */
+#sidebar nav::-webkit-scrollbar {
+  width: 4px;
+}
+#sidebar nav::-webkit-scrollbar-track {
+  background: transparent; 
+}
+#sidebar nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+#sidebar nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}

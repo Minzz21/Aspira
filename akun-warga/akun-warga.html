@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ASPIRA AI - Akun Warga</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../dashboard.css"/>
+  <link rel="stylesheet" href="akun-warga.css"/>
+  
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="../shared/firebase-config.js" defer></script>
+  <link rel="icon" type="image/png" href="../logo/favicon.png">
+  <link rel="stylesheet" href="../shared/sidebar.css"/>
+  <script>
+    if (localStorage.getItem('sidebar_collapsed') === 'true') {
+      document.documentElement.classList.add('sidebar-is-collapsed');
+    }
+  </script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="w-56 relative flex flex-col bg-[#1e4d2b] text-white flex-shrink-0 transition-all duration-300 z-20">
+    <button id="sidebar-toggle" class="absolute -right-3 top-7 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white border-2 border-gray-100 hover:bg-green-600 transition z-50">
+      <i class="fa-solid fa-chevron-left text-[10px] transition-transform duration-300" id="sidebar-toggle-icon"></i>
+    </button>
+    <div class="sidebar-header px-5 py-5 border-b border-green-800 flex items-center justify-between">
+      <div class="flex items-center gap-3 overflow-hidden">
+        <img src="../logo/logo.png" alt="ASPIRA AI" class="w-9 h-9 rounded-md object-cover flex-shrink-0"/>
+        <div class="sidebar-text whitespace-nowrap">
+          <p class="font-bold text-sm leading-tight">ASPIRA AI</p>
+          <p class="text-green-300 text-[10px]">Portal Tata Kelola</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+      <a href="../dashboard.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium" data-title="Dashboard Desa">
+        <i class="flex-shrink-0 fa-solid fa-table-cells-large w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Dashboard Desa</span>
+      </a>
+      <a href="../profil-desa/profil-desa.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium" data-title="Profil Desa &amp; UMKM">
+        <i class="flex-shrink-0 fa-solid fa-building-columns w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Profil Desa &amp; UMKM</span>
+      </a>
+      <a href="../aspirasi-warga/aspirasi-warga.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium" data-title="Aspirasi Warga">
+        <i class="flex-shrink-0 fa-regular fa-comment-dots w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Aspirasi Warga</span>
+      </a>
+      <a href="../whitelist-warga/whitelist-warga.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium" data-title="Whitelist Warga">
+        <i class="flex-shrink-0 fa-solid fa-shield-halved w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Whitelist Warga</span>
+      </a>
+      <a href="akun-warga.html" class="sidebar-item active flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium" data-title="Akun Warga">
+        <i class="flex-shrink-0 fa-solid fa-users-gear w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Akun Warga</span>
+      </a>
+      <a href="../pengaturan/pengaturan.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium" data-title="Pengaturan">
+        <i class="flex-shrink-0 fa-solid fa-gear w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Pengaturan</span>
+      </a>
+    </nav>
+
+    <div class="px-3 pb-3 border-t border-green-800 pt-3 space-y-1">
+      <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer text-green-300" data-title="Keluar">
+        <i class="flex-shrink-0 fa-solid fa-right-from-bracket w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Keluar</span>
+      </a>
+      <div class="sidebar-user-section flex items-center gap-3 px-3 py-2 mt-1 overflow-hidden">
+        <img src="https://ui-avatars.com/api/?name=Admin+Utama&background=4ade80&color=1e4d2b&size=40" class="w-9 h-9 rounded-full flex-shrink-0" alt="Admin"/>
+        <div class="sidebar-text whitespace-nowrap">
+          <p class="text-sm font-semibold leading-tight">Admin Utama</p>
+          <p class="text-green-300 text-[10px]">Administrator</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 overflow-y-auto bg-gray-50 flex flex-col">
+    <!-- Header -->
+    <div class="px-6 py-5 bg-white shadow-sm flex items-center justify-between sticky top-0 z-10">
+      <h1 class="text-xl font-bold text-[#1e4d2b]">Manajemen Akun Warga</h1>
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+          <input type="text" id="searchInput" placeholder="Cari NIK atau Nama..." class="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#1e4d2b] w-64 text-gray-700">
+        </div>
+        <button onclick="exportPDF()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+          <i class="fa-regular fa-file-pdf"></i>
+          Export PDF
+        </button>
+      </div>
+    </div>
+
+    <div class="p-6 max-w-[1200px] w-full mx-auto space-y-5 flex-1">
+      
+      <!-- Hero Banner -->
+      <div class="bg-[#1e4d2b] rounded-2xl p-8 text-white shadow-md relative overflow-hidden">
+        <!-- Abstract Decoration -->
+        <div class="absolute -right-10 -top-10 w-48 h-48 bg-white opacity-5 rounded-full blur-2xl"></div>
+        <div class="absolute -bottom-16 right-20 w-32 h-32 bg-white opacity-5 rounded-full blur-xl"></div>
+        
+        <h2 class="text-2xl font-bold mb-2">Pantau Pertumbuhan Komunitas</h2>
+        <p class="text-green-100 text-sm max-w-lg">
+          Kelola data kependudukan secara efisien untuk pembangunan desa yang lebih terarah dan inklusif.
+        </p>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-3 gap-5">
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-users text-[#1e4d2b] text-xl"></i>
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-gray-500 tracking-wider mb-1">TOTAL WARGA TERDAFTAR</p>
+            <div class="flex items-end gap-2">
+              <h3 class="text-3xl font-bold text-gray-800" id="totalWarga">0</h3>
+              <span class="text-xs font-semibold text-green-600 bg-green-50 px-1.5 py-0.5 rounded flex items-center gap-1 mb-1">
+                <i class="fa-solid fa-arrow-up text-[10px]"></i>12 bln ini
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-person text-orange-500 text-xl"></i>
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-gray-500 tracking-wider mb-1">LAKI-LAKI</p>
+            <h3 class="text-3xl font-bold text-gray-800" id="totalLaki">0</h3>
+            <p class="text-xs text-gray-400" id="persenLaki">0% dari populasi</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-person-dress text-emerald-500 text-xl"></i>
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-gray-500 tracking-wider mb-1">PEREMPUAN</p>
+            <h3 class="text-3xl font-bold text-gray-800" id="totalPerempuan">0</h3>
+            <p class="text-xs text-gray-400" id="persenPerempuan">0% dari populasi</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Section -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+        <!-- Filter Bar -->
+        <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+          <div class="flex items-center gap-2" id="filterContainer">
+            <button class="filter-btn active px-4 py-2 rounded-full text-sm font-medium bg-[#1e4d2b] text-white transition" data-filter="semua">Semua</button>
+            <!-- Dusun filters will be injected here -->
+          </div>
+          <div class="flex items-center gap-3">
+            <button class="w-9 h-9 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
+              <i class="fa-solid fa-filter text-sm"></i>
+            </button>
+            <button onclick="openTambahWargaModal()" class="px-4 py-2 rounded-full bg-[#1e4d2b] text-white text-sm font-medium hover:bg-[#164020] transition flex items-center gap-2 shadow-sm">
+              <i class="fa-solid fa-user-plus"></i> Tambah Warga
+            </button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead>
+              <tr class="bg-white border-b border-gray-100">
+                <th class="px-6 py-4 font-semibold text-gray-500 text-xs tracking-wider uppercase">No</th>
+                <th class="px-6 py-4 font-semibold text-gray-500 text-xs tracking-wider uppercase">Nama Warga</th>
+                <th class="px-6 py-4 font-semibold text-gray-500 text-xs tracking-wider uppercase">NIK</th>
+                <th class="px-6 py-4 font-semibold text-gray-500 text-xs tracking-wider uppercase">L/P</th>
+                <th class="px-6 py-4 font-semibold text-gray-500 text-xs tracking-wider uppercase">Asal Dusun</th>
+                <th class="px-6 py-4 font-semibold text-gray-500 text-xs tracking-wider uppercase">Tgl. Terdaftar</th>
+                <th class="px-6 py-4 font-semibold text-gray-500 text-xs tracking-wider uppercase text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody" class="divide-y divide-gray-50">
+              <!-- Loading State -->
+              <tr>
+                <td colspan="7" class="px-6 py-10 text-center text-gray-400">
+                  <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
+                  <p>Memuat data warga...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="p-5 border-t border-gray-100 flex items-center justify-between bg-white">
+          <p class="text-sm text-gray-500" id="paginationInfo">Menampilkan <span class="font-medium text-gray-800">0</span> dari <span class="font-medium text-gray-800">0</span> data</p>
+          <div class="flex items-center gap-1" id="paginationControls">
+            <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-50" disabled>
+              <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <button class="w-8 h-8 flex items-center justify-center rounded bg-[#1e4d2b] text-white text-sm font-medium">1</button>
+            <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium">2</button>
+            <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium">3</button>
+            <span class="w-8 flex items-center justify-center text-gray-400">...</span>
+            <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-400 hover:bg-gray-50">
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Simple Toast -->
+<div id="toast" class="fixed bottom-5 right-5 transform translate-y-full opacity-0 transition-all duration-300 bg-gray-800 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50">
+  <i class="fa-solid fa-circle-check text-green-400"></i>
+  <span id="toastMsg" class="text-sm font-medium">Berhasil disimpan</span>
+</div>
+
+<script src="akun-warga.js" defer></script>
+  <script src="../shared/sidebar.js"></script>
+</body>
+</html>

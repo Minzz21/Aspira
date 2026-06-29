@@ -14,17 +14,26 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <link rel="icon" type="image/png" href="../logo/favicon.png">
+  <link rel="stylesheet" href="../shared/sidebar.css"/>
+  <script>
+    if (localStorage.getItem('sidebar_collapsed') === 'true') {
+      document.documentElement.classList.add('sidebar-is-collapsed');
+    }
+  </script>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
 <div class="flex h-screen overflow-hidden">
 
   <!-- SIDEBAR -->
-  <aside class="w-56 flex flex-col bg-[#1e4d2b] text-white flex-shrink-0">
-    <div class="px-5 py-5 border-b border-green-800">
-      <div class="flex items-center gap-3">
-        <img src="../logo/logo.png" alt="ASPIRA AI" class="w-9 h-9 rounded-md object-cover"/>
-        <div>
+  <aside id="sidebar" class="w-56 relative flex flex-col bg-[#1e4d2b] text-white flex-shrink-0 transition-all duration-300 z-20">
+    <button id="sidebar-toggle" class="absolute -right-3 top-7 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white border-2 border-gray-100 hover:bg-green-600 transition z-50">
+      <i class="fa-solid fa-chevron-left text-[10px] transition-transform duration-300" id="sidebar-toggle-icon"></i>
+    </button>
+    <div class="sidebar-header px-5 py-5 border-b border-green-800 flex items-center justify-between">
+      <div class="flex items-center gap-3 overflow-hidden">
+        <img src="../logo/logo.png" alt="ASPIRA AI" class="w-9 h-9 rounded-md object-cover flex-shrink-0"/>
+        <div class="sidebar-text whitespace-nowrap">
           <p class="font-bold text-sm leading-tight">ASPIRA AI</p>
           <p class="text-green-300 text-[10px]">Portal Tata Kelola</p>
         </div>
@@ -32,36 +41,40 @@
     </div>
 
     <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-      <a href="../dashboard.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
-        <i class="fa-solid fa-table-cells-large w-4 text-center"></i>
-        Dashboard Desa
+      <a href="../dashboard.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium" data-title="Dashboard Desa">
+        <i class="flex-shrink-0 fa-solid fa-table-cells-large w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Dashboard Desa</span>
       </a>
-      <a href="profil-desa.html" class="sidebar-item active flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
-        <i class="fa-solid fa-building-columns w-4 text-center"></i>
-        Profil Desa &amp; UMKM
+      <a href="profil-desa.html" class="sidebar-item active flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium" data-title="Profil Desa &amp; UMKM">
+        <i class="flex-shrink-0 fa-solid fa-building-columns w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Profil Desa &amp; UMKM</span>
       </a>
-      <a href="../aspirasi-warga/aspirasi-warga.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
-        <i class="fa-regular fa-comment-dots w-4 text-center"></i>
-        Aspirasi Warga
+      <a href="../aspirasi-warga/aspirasi-warga.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium" data-title="Aspirasi Warga">
+        <i class="flex-shrink-0 fa-regular fa-comment-dots w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Aspirasi Warga</span>
       </a>
-      <a href="../whitelist-warga/whitelist-warga.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
-        <i class="fa-solid fa-shield-halved w-4 text-center"></i>
-        Whitelist Warga
+      <a href="../whitelist-warga/whitelist-warga.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium" data-title="Whitelist Warga">
+        <i class="flex-shrink-0 fa-solid fa-shield-halved w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Whitelist Warga</span>
       </a>
-      <a href="../pengaturan/pengaturan.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
-        <i class="fa-solid fa-gear w-4 text-center"></i>
-        Pengaturan
+      <a href="../akun-warga/akun-warga.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium" data-title="Akun Warga">
+        <i class="flex-shrink-0 fa-solid fa-users-gear w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Akun Warga</span>
+      </a>
+      <a href="../pengaturan/pengaturan.html" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium" data-title="Pengaturan">
+        <i class="flex-shrink-0 fa-solid fa-gear w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Pengaturan</span>
       </a>
     </nav>
 
     <div class="px-3 pb-3 border-t border-green-800 pt-3 space-y-1">
-      <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-green-300">
-        <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
-        Keluar
+      <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-green-300" data-title="Keluar">
+        <i class="flex-shrink-0 fa-solid fa-right-from-bracket w-4 text-center"></i>
+        <span class="sidebar-text whitespace-nowrap">Keluar</span>
       </a>
-      <div class="flex items-center gap-3 px-3 py-2 mt-1">
-        <img src="https://ui-avatars.com/api/?name=Admin+Utama&background=4ade80&color=1e4d2b&size=40" class="w-9 h-9 rounded-full" alt="Admin"/>
-        <div>
+      <div class="sidebar-user-section flex items-center gap-3 px-3 py-2 mt-1 overflow-hidden">
+        <img src="https://ui-avatars.com/api/?name=Admin+Utama&background=4ade80&color=1e4d2b&size=40" class="w-9 h-9 rounded-full flex-shrink-0" alt="Admin"/>
+        <div class="sidebar-text whitespace-nowrap">
           <p class="text-sm font-semibold leading-tight">Admin Utama</p>
           <p class="text-green-300 text-[10px]">Administrator</p>
         </div>
@@ -371,5 +384,6 @@
 
 <script src="../shared/firebase-config.js" defer></script>
 <script src="profil-desa.js" defer></script>
+  <script src="../shared/sidebar.js"></script>
 </body>
 </html>

@@ -1,29 +1,43 @@
 /* ──────────────────────────────────────────────────────────
-   PENGATURAN — JavaScript
+   PENGATURAN — JavaScript (Firestore Integrated)
    ────────────────────────────────────────────────────────── */
 
-/* ── SIMULATED STORED DATA ─────────────────────────────── */
-let adminData = {
-  nama:  'Administrator Utama',
-  email: 'adminutama@aspiraai.id',
-  telp:  '+62 812-3456-7890',
-  nik:   '3201000000000001',      // stored internally, not shown plain
-  role:  'Administrator',
-};
+const adminsCol = db.collection('admins');
+let adminData = null;
+const adminId = localStorage.getItem('aspira_admin_id');
 
 /* ── INIT ──────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
-  updateSidebarUser();
-  syncDisplayName();
+document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('input-nama').addEventListener('input', syncDisplayName);
   document.getElementById('nik-baru').addEventListener('input', checkNIKMatch);
   document.getElementById('nik-konfirmasi').addEventListener('input', checkNIKMatch);
+
+  if (!adminId) {
+    showToast('Sesi tidak valid, silakan login ulang.', 'error');
+    return;
+  }
+
+  await loadAdminData();
 });
 
-function updateSidebarUser() {
-  document.getElementById('sidebar-name').textContent = adminData.nama;
-  document.getElementById('sidebar-role').textContent = adminData.role;
-  setAvatarInitial(adminData.nama);
+async function loadAdminData() {
+  try {
+    const doc = await adminsCol.doc(adminId).get();
+    if (doc.exists) {
+      adminData = doc.data();
+      
+      // Update form
+      document.getElementById('input-nama').value = adminData.nama || '';
+      document.getElementById('input-email').value = adminData.email || '';
+      document.getElementById('input-telp').value = adminData.telp || '';
+      
+      syncDisplayName();
+      setAvatarInitial(adminData.nama || 'Admin');
+    }
+  } catch (error) {
+    console.error("Gagal memuat data admin:", error);
+    showToast('Gagal memuat profil admin.', 'error');
+  }
 }
 
 function setAvatarInitial(nama) {
@@ -33,7 +47,6 @@ function setAvatarInitial(nama) {
     : nama[0].toUpperCase();
   const el = document.getElementById('avatar-initials');
   if (el) el.textContent = initials;
-  document.getElementById('sidebar-avatar').textContent = initials[0];
 }
 
 function syncDisplayName() {
@@ -66,7 +79,7 @@ function handleAvatarChange(e) {
 }
 
 /* ── SIMPAN PROFIL ─────────────────────────────────────── */
-function simpanProfil() {
+async function simpanProfil() {
   const nama  = document.getElementById('input-nama').value.trim();
   const email = document.getElementById('input-email').value.trim();
   const telp  = document.getElementById('input-telp').value.trim();
@@ -76,25 +89,52 @@ function simpanProfil() {
                return showToast('Format email tidak valid.', 'error');
   if (!telp)  return showToast('Nomor telepon tidak boleh kosong.', 'error');
 
-  // Simulate save
-  adminData.nama  = nama;
-  adminData.email = email;
-  adminData.telp  = telp;
-
-  updateSidebarUser();
-  document.getElementById('display-nama').textContent = nama;
-
   const btn = document.getElementById('btn-update-profil');
-  btn.innerHTML = '<i class="fa-solid fa-check text-xs"></i> Tersimpan!';
-  btn.classList.add('bg-green-600');
-  btn.classList.remove('bg-[#1e4d2b]');
-  setTimeout(() => {
-    btn.innerHTML = '<i class="fa-solid fa-floppy-disk text-xs"></i> Update Profil';
-    btn.classList.remove('bg-green-600');
-    btn.classList.add('bg-[#1e4d2b]');
-  }, 2000);
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> Menyimpan...';
+  btn.disabled = true;
 
-  showToast('Profil berhasil diperbarui.');
+  try {
+    await adminsCol.doc(adminId).update({
+      nama: nama,
+      email: email,
+      telp: telp
+    });
+
+    adminData.nama = nama;
+    adminData.email = email;
+    adminData.telp = telp;
+    
+    // Update LocalStorage agar sidebar mendeteksi perubahan
+    localStorage.setItem('aspira_admin_name', nama);
+    localStorage.setItem('aspira_admin_email', email);
+    localStorage.setItem('aspira_admin_telp', telp);
+
+    // Render ulang sidebar
+    if (typeof window.updateGlobalSidebarProfile === 'function') {
+      window.updateGlobalSidebarProfile();
+    }
+    
+    document.getElementById('display-nama').textContent = nama;
+    setAvatarInitial(nama);
+
+    btn.innerHTML = '<i class="fa-solid fa-check text-xs"></i> Tersimpan!';
+    btn.classList.add('bg-green-600');
+    btn.classList.remove('bg-[#1e4d2b]');
+    
+    showToast('Profil berhasil diperbarui.');
+  } catch (error) {
+    console.error("Gagal simpan profil:", error);
+    showToast('Terjadi kesalahan saat menyimpan data.', 'error');
+    btn.innerHTML = originalHtml;
+  } finally {
+    setTimeout(() => {
+      btn.innerHTML = '<i class="fa-solid fa-floppy-disk text-xs"></i> Update Profil';
+      btn.classList.remove('bg-green-600');
+      btn.classList.add('bg-[#1e4d2b]');
+      btn.disabled = false;
+    }, 2000);
+  }
 }
 
 /* ── NIK ───────────────────────────────────────────────── */
@@ -120,7 +160,7 @@ function checkNIKMatch() {
   }
 }
 
-function simpanNIK() {
+async function simpanNIK() {
   const lama   = document.getElementById('nik-lama').value.trim();
   const baru   = document.getElementById('nik-baru').value.trim();
   const konfir = document.getElementById('nik-konfirmasi').value.trim();
@@ -133,12 +173,20 @@ function simpanNIK() {
   if (baru === lama)                    return showNIKError('NIK baru tidak boleh sama dengan NIK lama.');
   if (baru !== konfir)                  return showNIKError('Konfirmasi NIK baru tidak cocok.');
 
-  adminData.nik = baru;
-  document.getElementById('nik-lama').value      = '';
-  document.getElementById('nik-baru').value      = '';
-  document.getElementById('nik-konfirmasi').value = '';
-  document.getElementById('nik-konfirmasi').classList.remove('input-match', 'input-mismatch');
-  showToast('NIK berhasil diperbarui.');
+  try {
+    await adminsCol.doc(adminId).update({ nik: baru });
+    adminData.nik = baru;
+    localStorage.setItem('aspira_admin_nik', baru);
+
+    document.getElementById('nik-lama').value      = '';
+    document.getElementById('nik-baru').value      = '';
+    document.getElementById('nik-konfirmasi').value = '';
+    document.getElementById('nik-konfirmasi').classList.remove('input-match', 'input-mismatch');
+    showToast('NIK berhasil diperbarui.');
+  } catch (error) {
+    console.error("Gagal simpan NIK:", error);
+    showNIKError('Gagal menyimpan NIK ke database.');
+  }
 }
 
 function showNIKError(msg) {
@@ -216,7 +264,7 @@ function checkPassMatch() {
   }
 }
 
-function simpanPassword() {
+async function simpanPassword() {
   const lama  = document.getElementById('pass-lama').value;
   const baru  = document.getElementById('pass-baru').value;
   const konfir = document.getElementById('pass-konfirmasi').value;
@@ -224,19 +272,27 @@ function simpanPassword() {
   hidePassError();
 
   if (!lama)             return showPassError('Password lama tidak boleh kosong.');
+  if (lama !== adminData.password) return showPassError('Password lama salah.');
   if (baru.length < 8)   return showPassError('Password baru minimal 8 karakter.');
   if (!/[A-Z]/.test(baru))  return showPassError('Password harus mengandung huruf kapital.');
   if (!/[0-9]/.test(baru))  return showPassError('Password harus mengandung angka.');
   if (baru !== konfir)   return showPassError('Konfirmasi password tidak cocok.');
 
-  // Simulate — in real app, verify old password server-side
-  document.getElementById('pass-lama').value      = '';
-  document.getElementById('pass-baru').value      = '';
-  document.getElementById('pass-konfirmasi').value = '';
-  document.getElementById('pass-konfirmasi').classList.remove('input-match', 'input-mismatch');
-  checkPasswordStrength(); // reset strength bars
+  try {
+    await adminsCol.doc(adminId).update({ password: baru });
+    adminData.password = baru;
 
-  showToast('Password berhasil diperbarui. Silakan login kembali jika diminta.');
+    document.getElementById('pass-lama').value      = '';
+    document.getElementById('pass-baru').value      = '';
+    document.getElementById('pass-konfirmasi').value = '';
+    document.getElementById('pass-konfirmasi').classList.remove('input-match', 'input-mismatch');
+    checkPasswordStrength(); // reset strength bars
+
+    showToast('Password berhasil diperbarui. Silakan login kembali jika diminta.');
+  } catch (error) {
+    console.error("Gagal simpan password:", error);
+    showPassError('Gagal menyimpan password ke database.');
+  }
 }
 
 function showPassError(msg) {
