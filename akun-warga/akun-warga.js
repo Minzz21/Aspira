@@ -200,6 +200,7 @@ function renderTable() {
         </div>
       </td>
       <td class="px-6 py-4 text-sm text-gray-500 font-mono">${item.nik || '-'}</td>
+      <td class="px-6 py-4 text-lg text-gray-400 tracking-widest pt-5">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</td>
       <td class="px-6 py-4 text-sm text-gray-500">${genderCode}</td>
       <td class="px-6 py-4">${dusunHtml}</td>
       <td class="px-6 py-4 text-sm text-gray-500">${formatDate(item.createdAt)}</td>
@@ -305,7 +306,105 @@ function openTambahWargaModal() {
 }
 
 function editWarga(id) {
-  showToast("Fitur Edit Warga sedang dikembangkan.");
+  const warga = akunWargaData.find(w => w.id === id);
+  if (!warga) return;
+  
+  document.getElementById('editId').value = warga.id;
+  document.getElementById('editNama').value = warga.nama || '';
+  document.getElementById('editNik').value = warga.nik || '';
+  
+  let gender = warga.gender || '';
+  if(gender.toLowerCase() === 'laki-laki' || gender.toLowerCase() === 'l') {
+    document.getElementById('editGender').value = 'Laki-laki';
+  } else if (gender.toLowerCase() === 'perempuan' || gender.toLowerCase() === 'p') {
+    document.getElementById('editGender').value = 'Perempuan';
+  } else {
+    document.getElementById('editGender').value = 'Laki-laki'; // default
+  }
+  
+  document.getElementById('editDusun').value = warga.dusun || '';
+  
+  const modal = document.getElementById('editWargaModal');
+  const modalContent = document.getElementById('editWargaModalContent');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  setTimeout(() => {
+    modal.classList.remove('opacity-0');
+    modalContent.classList.remove('scale-95');
+    modalContent.classList.add('scale-100');
+  }, 10);
+}
+
+function closeEditModal() {
+  const modal = document.getElementById('editWargaModal');
+  const modalContent = document.getElementById('editWargaModalContent');
+  modal.classList.add('opacity-0');
+  modalContent.classList.remove('scale-100');
+  modalContent.classList.add('scale-95');
+  setTimeout(() => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }, 300);
+}
+
+function simpanEditWarga() {
+  const id = document.getElementById('editId').value;
+  const nama = document.getElementById('editNama').value.trim();
+  const nik = document.getElementById('editNik').value.trim();
+  const gender = document.getElementById('editGender').value;
+  const dusun = document.getElementById('editDusun').value.trim();
+  
+  if (!nama || !nik || !dusun) {
+    showToast("Semua kolom harus diisi.");
+    return;
+  }
+  
+  const btn = document.getElementById('btnSimpanEdit');
+  const oriText = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+  btn.disabled = true;
+  
+  db.collection('akun_warga').doc(id).update({
+    nama: nama,
+    nik: nik,
+    gender: gender,
+    dusun: dusun
+  }).then(() => {
+    closeEditModal();
+    showToast("Data warga berhasil diperbarui.");
+  }).catch(err => {
+    console.error(err);
+    showToast("Gagal memperbarui data.");
+  }).finally(() => {
+    btn.innerHTML = oriText;
+    btn.disabled = false;
+  });
+}
+
+function resetPasswordDefault() {
+  const id = document.getElementById('editId').value;
+  const nik = document.getElementById('editNik').value.trim();
+  
+  if (!id) return;
+  if (!nik || nik.length < 14) {
+    showToast("NIK warga tidak valid untuk direset.");
+    return;
+  }
+  
+  if (!confirm("Reset password warga ke default (digit ke 7-14 dari NIK)?")) {
+    return;
+  }
+  
+  const defaultPassword = nik.substring(6, 14);
+  
+  db.collection('akun_warga').doc(id).update({
+    password: defaultPassword
+  }).then(() => {
+    showToast("Password berhasil direset ke default.");
+  }).catch(err => {
+    console.error(err);
+    showToast("Gagal mereset password.");
+  });
 }
 
 function hapusWarga(id) {
