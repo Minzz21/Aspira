@@ -93,10 +93,7 @@
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
           <input type="text" id="searchInput" placeholder="Cari NIK atau Nama..." class="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#1e4d2b] w-64 text-gray-700">
         </div>
-        <button onclick="exportPDF()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-          <i class="fa-regular fa-file-pdf"></i>
-          Export PDF
-        </button>
+        
       </div>
     </div>
 
@@ -162,14 +159,7 @@
             <button class="filter-btn active px-4 py-2 rounded-full text-sm font-medium bg-[#1e4d2b] text-white transition" data-filter="semua">Semua</button>
             <!-- Dusun filters will be injected here -->
           </div>
-          <div class="flex items-center gap-3">
-            <button class="w-9 h-9 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
-              <i class="fa-solid fa-filter text-sm"></i>
-            </button>
-            <button onclick="openTambahWargaModal()" class="px-4 py-2 rounded-full bg-[#1e4d2b] text-white text-sm font-medium hover:bg-[#164020] transition flex items-center gap-2 shadow-sm">
-              <i class="fa-solid fa-user-plus"></i> Tambah Warga
-            </button>
-          </div>
+          
         </div>
 
         <!-- Table -->
@@ -262,6 +252,50 @@
           <i class="fa-solid fa-save"></i> Simpan
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Password Success Modal -->
+<div id="resetSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-opacity opacity-0">
+  <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 p-6 space-y-4" id="resetSuccessModalContent">
+    <div class="text-center space-y-2">
+      <div class="w-12 h-12 rounded-full bg-green-50/80 text-[#1e4d2b] flex items-center justify-center mx-auto text-xl shadow-inner">
+        <i class="fa-solid fa-key animate-bounce"></i>
+      </div>
+      <h3 class="text-lg font-bold text-gray-800">Password Berhasil Direset</h3>
+      <p class="text-xs text-gray-500">Berikut adalah password default baru warga yang telah direset:</p>
+    </div>
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+      <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Password Baru</p>
+      <div class="flex items-center justify-center gap-3">
+        <p class="text-lg font-bold font-mono text-[#1e4d2b] tracking-wider select-all" id="newPasswordDisplay">12345678</p>
+        <button onclick="salinPassword()" class="w-8 h-8 rounded-full bg-white hover:bg-gray-100 border border-gray-200 text-gray-500 hover:text-[#1e4d2b] flex items-center justify-center transition shadow-sm" title="Salin Password">
+          <i class="fa-regular fa-copy text-xs"></i>
+        </button>
+      </div>
+    </div>
+    <div class="text-center">
+      <p class="text-[10px] text-orange-600 bg-orange-50 rounded px-2.5 py-1.5 inline-block border border-orange-100">
+        <i class="fa-solid fa-triangle-exclamation mr-1"></i> Harap catat atau salin password ini sebelum menutup jendela ini.
+      </p>
+    </div>
+    <button onclick="closeResetSuccessModal()" class="w-full py-2.5 bg-[#1e4d2b] hover:bg-[#164020] text-white rounded-lg text-sm font-semibold transition shadow-sm">
+      Selesai & Tutup
+    </button>
+  </div>
+</div>
+
+<!-- Loading Modal -->
+<div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-opacity opacity-0">
+  <div class="bg-white rounded-2xl p-6 flex flex-col items-center justify-center space-y-4 max-w-xs w-full text-center shadow-lg transform scale-100 transition-transform duration-300">
+    <div class="relative flex items-center justify-center">
+      <div class="w-12 h-12 rounded-full border-4 border-gray-100 border-t-[#1e4d2b] animate-spin"></div>
+      <i class="fa-solid fa-key absolute text-xs text-[#1e4d2b] animate-pulse"></i>
+    </div>
+    <div>
+      <h4 class="text-sm font-bold text-gray-800">Memproses Reset Password</h4>
+      <p class="text-xs text-gray-400 mt-1">Sedang memperbarui database Firestore, mohon tunggu...</p>
     </div>
   </div>
 </div>

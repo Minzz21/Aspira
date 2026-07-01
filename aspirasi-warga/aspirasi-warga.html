@@ -14,6 +14,9 @@
   <!-- Firebase Compat SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <link rel="icon" type="image/png" href="../logo/favicon.png">
   <link rel="icon" type="image/png" href="../logo/favicon.png">
   <link rel="stylesheet" href="../shared/sidebar.css"/>
   <script>
@@ -175,11 +178,17 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col overflow-hidden h-[calc(100vh-140px)] sticky top-6">
           <!-- Header Detail -->
           <div class="p-5 border-b border-gray-100 bg-green-50/30">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider" id="detail-id">REQ-202410-098</span>
-              <span id="detail-badge" class="badge-status status-kritis-bg text-[10px] font-bold px-2 py-0.5 rounded-full">KRITIS</span>
+            <div class="flex justify-between items-center mb-3">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 text-[#1e4d2b] text-[10px] font-bold uppercase tracking-wider border border-green-200 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-600 animate-pulse"></span>
+                Sedang Direview
+              </span>
+              <span class="text-[10px] font-bold font-mono text-gray-400 uppercase tracking-wider" id="detail-id">REQ-202410-098</span>
             </div>
-            <h2 class="text-base font-bold text-gray-800 leading-tight mb-3" id="detail-subjek">Jembatan Dusun Wariagin Ambruk Sebagian</h2>
+            <div class="flex justify-between items-start mb-3 gap-3">
+              <h2 class="text-base font-bold text-gray-800 leading-tight" id="detail-subjek">Jembatan Dusun Wariagin Ambruk Sebagian</h2>
+              <span id="detail-badge" class="badge-status status-kritis-bg text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">KRITIS</span>
+            </div>
             <div class="flex items-center gap-3">
               <div class="w-8 h-8 rounded-full bg-[#1e4d2b] text-white flex items-center justify-center font-bold text-xs" id="detail-avatar">W</div>
               <div>

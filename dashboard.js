@@ -36,10 +36,13 @@ function renderTable(laporanData) {
           <span class="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">${row.kategori}</span>
         </td>
         <td class="py-3 pr-4">
-          <span class="flex items-center gap-1.5 ${s.color} font-semibold text-xs">
-            <span class="w-1.5 h-1.5 rounded-full ${s.dot} inline-block"></span>
-            ${s.label}
-          </span>
+          <div class="flex items-center gap-1.5">
+            <span class="flex items-center gap-1.5 ${s.color} font-semibold text-xs">
+              <span class="w-1.5 h-1.5 rounded-full ${s.dot} inline-block"></span>
+              ${s.label}
+            </span>
+            ${row.kritis ? `<span class="ml-1 bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> KRITIS</span>` : ''}
+          </div>
         </td>
         <td class="py-3">
           <button onclick="lihatDetail('${row.nama || row.pelapor}')" class="text-gray-400 hover:text-[#1e4d2b] transition">
@@ -73,7 +76,7 @@ function loadDashboardData() {
       const data = doc.data();
       totalAspirasi++;
       
-      if (data.status === 'kritis') kritisCount++;
+      if (data.kritis === true) kritisCount++;
       
       const kat = (data.kategori || '').toLowerCase();
       if (kat.includes('ekonomi') || kat.includes('umkm')) katEkonomi++;

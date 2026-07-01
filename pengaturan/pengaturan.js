@@ -5,6 +5,7 @@
 const adminsCol = db.collection('admins');
 let adminData = null;
 const adminId = localStorage.getItem('aspira_admin_id');
+let selectedAvatarBase64 = null;
 
 /* ── INIT ──────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async () => {
@@ -32,7 +33,17 @@ async function loadAdminData() {
       document.getElementById('input-telp').value = adminData.telp || '';
       
       syncDisplayName();
-      setAvatarInitial(adminData.nama || 'Admin');
+      
+      if (adminData.avatarUrl) {
+        const display = document.getElementById('avatar-display');
+        display.innerHTML = `<img src="${adminData.avatarUrl}" class="w-full h-full object-cover rounded-xl" alt="Avatar"/>`;
+      } else {
+        const display = document.getElementById('avatar-display');
+        if (!document.getElementById('avatar-initials')) {
+          display.innerHTML = `<span id="avatar-initials" class="text-3xl font-bold text-gray-400"></span>`;
+        }
+        setAvatarInitial(adminData.nama || 'Admin');
+      }
     }
   } catch (error) {
     console.error("Gagal memuat data admin:", error);
@@ -72,8 +83,32 @@ function handleAvatarChange(e) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = (ev) => {
-    const display = document.getElementById('avatar-display');
-    display.innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover rounded-xl" alt="Avatar"/>`;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_SIZE = 256;
+      let width = img.width;
+      let height = img.height;
+      if (width > height) {
+        if (width > MAX_SIZE) {
+          height *= MAX_SIZE / width;
+          width = MAX_SIZE;
+        }
+      } else {
+        if (height > MAX_SIZE) {
+          width *= MAX_SIZE / height;
+          height = MAX_SIZE;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      selectedAvatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
+      const display = document.getElementById('avatar-display');
+      display.innerHTML = `<img src="${selectedAvatarBase64}" class="w-full h-full object-cover rounded-xl" alt="Avatar"/>`;
+    };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 }
@@ -95,20 +130,34 @@ async function simpanProfil() {
   btn.disabled = true;
 
   try {
-    await adminsCol.doc(adminId).update({
+    let newAvatarUrl = adminData.avatarUrl || null;
+
+    if (selectedAvatarBase64) {
+      newAvatarUrl = selectedAvatarBase64;
+    }
+
+    const updateData = {
       nama: nama,
       email: email,
       telp: telp
-    });
+    };
+
+    if (newAvatarUrl) {
+      updateData.avatarUrl = newAvatarUrl;
+    }
+
+    await adminsCol.doc(adminId).update(updateData);
 
     adminData.nama = nama;
     adminData.email = email;
     adminData.telp = telp;
+    if (newAvatarUrl) adminData.avatarUrl = newAvatarUrl;
     
     // Update LocalStorage agar sidebar mendeteksi perubahan
     localStorage.setItem('aspira_admin_name', nama);
     localStorage.setItem('aspira_admin_email', email);
     localStorage.setItem('aspira_admin_telp', telp);
+    if (newAvatarUrl) localStorage.setItem('aspira_admin_avatar', newAvatarUrl);
 
     // Render ulang sidebar
     if (typeof window.updateGlobalSidebarProfile === 'function') {
@@ -116,7 +165,13 @@ async function simpanProfil() {
     }
     
     document.getElementById('display-nama').textContent = nama;
-    setAvatarInitial(nama);
+    if (!newAvatarUrl) {
+      const display = document.getElementById('avatar-display');
+      if (!document.getElementById('avatar-initials')) {
+        display.innerHTML = `<span id="avatar-initials" class="text-3xl font-bold text-gray-400"></span>`;
+      }
+      setAvatarInitial(nama);
+    }
 
     btn.innerHTML = '<i class="fa-solid fa-check text-xs"></i> Tersimpan!';
     btn.classList.add('bg-green-600');

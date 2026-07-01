@@ -51,15 +51,29 @@ window.updateGlobalSidebarProfile = function() {
   const nama = localStorage.getItem('aspira_admin_name') || 'Admin Utama';
   const role = localStorage.getItem('aspira_admin_role') || 'Administrator';
 
+  const avatarUrl = localStorage.getItem('aspira_admin_avatar');
+
   if (nameEl) nameEl.textContent = nama;
   if (roleEl) roleEl.textContent = role;
 
-  if (avatarImg) {
-    avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nama)}&background=4ade80&color=1e4d2b&size=40`;
-  } else if (avatarDiv) {
-    // Generate initials jika elemen avatar berupa div (seperti di pengaturan.html)
-    const parts = nama.trim().split(' ');
-    const initials = parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : nama[0].toUpperCase();
-    avatarDiv.textContent = initials;
+  if (avatarUrl) {
+    if (avatarImg) {
+      avatarImg.src = avatarUrl;
+    } else if (avatarDiv) {
+      const img = document.createElement('img');
+      img.src = avatarUrl;
+      img.className = avatarDiv.className;
+      img.id = 'sidebar-avatar';
+      img.style.objectFit = 'cover';
+      avatarDiv.parentNode.replaceChild(img, avatarDiv);
+    }
+  } else {
+    if (avatarImg) {
+      avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nama)}&background=4ade80&color=1e4d2b&size=40`;
+    } else if (avatarDiv) {
+      const parts = nama.trim().split(' ');
+      const initials = parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : nama[0].toUpperCase();
+      avatarDiv.textContent = initials;
+    }
   }
 };

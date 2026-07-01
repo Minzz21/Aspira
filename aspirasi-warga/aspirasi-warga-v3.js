@@ -50,7 +50,7 @@ function renderTable() {
   }
 
   tbody.innerHTML = paginatedItems.map(item => `
-    <tr class="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer ${item.id === activeReport?.id ? 'bg-green-50/30' : ''}" onclick="selectReport('${item.id}')">
+    <tr class="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer border-l-4 ${item.id === activeReport?.id ? 'bg-green-50 border-[#1e4d2b]' : 'border-transparent'}" onclick="selectReport('${item.id}')">
       <td class="py-3 px-4 text-xs font-mono text-gray-500">${item.id}</td>
       <td class="py-3 px-4">
         <p class="text-sm font-semibold text-gray-800">${item.nama}</p>
@@ -62,7 +62,10 @@ function renderTable() {
         ${item.kritis ? '<span class="ml-1 bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-triangle-exclamation"></i> KRITIS</span>' : ''}
       </td>
       <td class="py-3 px-4">
-        <button class="text-[#1e4d2b] hover:text-[#164020] text-sm"><i class="fa-solid fa-chevron-right"></i></button>
+        ${item.id === activeReport?.id ? 
+          `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#1e4d2b] text-white text-[10px] shadow-sm"><i class="fa-solid fa-eye"></i></span>` : 
+          `<button class="text-gray-400 hover:text-[#1e4d2b] text-sm"><i class="fa-solid fa-chevron-right"></i></button>`
+        }
       </td>
     </tr>
   `).join('');
@@ -166,7 +169,51 @@ function copyTranskripsi() {
 }
 
 function eksporLaporan() {
-  showToast('PDF Laporan sedang dibuat...');
+  if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+    alert('Library PDF belum dimuat.');
+    return;
+  }
+  
+  if (dataAspirasi.length === 0) {
+    alert('Tidak ada data laporan untuk diekspor.');
+    return;
+  }
+  
+  showToast('Memproses Ekspor PDF...');
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(16);
+  doc.text('Laporan Aspirasi Warga', 14, 20);
+  doc.setFontSize(10);
+  doc.text(`Dicetak pada: ${new Date().toLocaleDateString('id-ID')}`, 14, 28);
+  
+  const tableColumn = ["ID Laporan", "Pelapor", "Kategori", "Status", "Kritis"];
+  const tableRows = [];
+  
+  dataAspirasi.forEach(item => {
+    const rowData = [
+      item.id,
+      `${item.nama}\n(${item.waktu})`,
+      item.kategori || '-',
+      item.status ? item.status.toUpperCase() : '-',
+      item.kritis ? 'Ya' : 'Tidak'
+    ];
+    tableRows.push(rowData);
+  });
+  
+  doc.autoTable({
+    head: [tableColumn],
+    body: tableRows,
+    startY: 35,
+    theme: 'grid',
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [30, 77, 43] } // ASPIRA green (#1e4d2b)
+  });
+  
+  doc.save('Laporan_Aspirasi_Warga.pdf');
+  showToast('PDF berhasil diekspor.');
 }
 
 /* Audio Player Real Implementation */

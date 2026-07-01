@@ -397,12 +397,19 @@ function resetPasswordDefault() {
   
   const defaultPassword = nik.substring(6, 14);
   
+  // Tampilkan loading modal
+  showLoadingModal();
+  
   db.collection('akun_warga').doc(id).update({
     password: defaultPassword
   }).then(() => {
-    showToast("Password berhasil direset ke default.");
+    // Sembunyikan loading modal, tutup edit modal, dan tampilkan sukses modal
+    closeLoadingModal();
+    closeEditModal();
+    showResetSuccessModal(defaultPassword);
   }).catch(err => {
     console.error(err);
+    closeLoadingModal();
     showToast("Gagal mereset password.");
   });
 }
@@ -426,6 +433,59 @@ function showToast(msg) {
   setTimeout(() => {
     toast.classList.add('translate-y-full', 'opacity-0');
   }, 3000);
+}
+
+function showResetSuccessModal(password) {
+  document.getElementById('newPasswordDisplay').textContent = password;
+  const modal = document.getElementById('resetSuccessModal');
+  const modalContent = document.getElementById('resetSuccessModalContent');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  setTimeout(() => {
+    modal.classList.remove('opacity-0');
+    modalContent.classList.remove('scale-95');
+    modalContent.classList.add('scale-100');
+  }, 10);
+}
+
+function closeResetSuccessModal() {
+  const modal = document.getElementById('resetSuccessModal');
+  const modalContent = document.getElementById('resetSuccessModalContent');
+  modal.classList.add('opacity-0');
+  modalContent.classList.remove('scale-100');
+  modalContent.classList.add('scale-95');
+  setTimeout(() => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }, 300);
+}
+
+function showLoadingModal() {
+  const modal = document.getElementById('loadingModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  setTimeout(() => {
+    modal.classList.remove('opacity-0');
+  }, 10);
+}
+
+function closeLoadingModal() {
+  const modal = document.getElementById('loadingModal');
+  modal.classList.add('opacity-0');
+  setTimeout(() => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }, 300);
+}
+
+function salinPassword() {
+  const passwordText = document.getElementById('newPasswordDisplay').textContent;
+  navigator.clipboard.writeText(passwordText).then(() => {
+    showToast("Password berhasil disalin ke clipboard!");
+  }).catch(err => {
+    console.error('Gagal menyalin text: ', err);
+    showToast("Gagal menyalin password.");
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

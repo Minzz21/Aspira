@@ -5,6 +5,7 @@ let currentPage = 1;
 const rowsPerPage = 3;
 let filteredData = [];
 let allUmkmData = [];
+let allPendudukData = [];
 
 function loadUMKMData() {
   const umkmCol = db.collection('umkm');
@@ -231,7 +232,50 @@ function lihatDetailUMKM(id, backWilayah) {
 }
 
 function eksporData() {
-  alert('Data UMKM sedang diekspor ke format Excel.');
+  if (typeof XLSX === 'undefined') {
+    alert('Library Excel belum dimuat.');
+    return;
+  }
+  
+  if (allUmkmData.length === 0 && allPendudukData.length === 0) {
+    alert('Tidak ada data untuk diekspor.');
+    return;
+  }
+  
+  showToast('Memproses Ekspor Data...');
+
+  // 1. Data Penduduk (Whitelist)
+  const wsPenduduk = XLSX.utils.json_to_sheet(allPendudukData.map((p, index) => ({
+    'No': index + 1,
+    'Nama Lengkap': p.nama || '-',
+    'NIK': p.nik || '-',
+    'Jenis Kelamin': p.gender || '-',
+    'Tanggal Terdaftar': p.createdAt && p.createdAt.toDate ? p.createdAt.toDate().toLocaleDateString('id-ID') : '-'
+  })));
+
+  // 2. Data UMKM
+  const wsUMKM = XLSX.utils.json_to_sheet(allUmkmData.map((u, index) => ({
+    'No': index + 1,
+    'Nama UMKM': u.nama_umkm || '-',
+    'Pemilik': u.nama_pemilik || '-',
+    'Sektor Usaha': u.sektor_usaha || '-',
+    'Wilayah': u.wilayah || '-',
+    'Alamat Lengkap': u.alamat_lengkap || '-',
+    'Tanggal Terdaftar': u.tanggal_registrasi && u.tanggal_registrasi.toDate ? u.tanggal_registrasi.toDate().toLocaleDateString('id-ID') : '-'
+  })));
+
+  // Format lebar kolom agar lebih rapi
+  const colsPenduduk = [ { wch: 5 }, { wch: 30 }, { wch: 20 }, { wch: 15 }, { wch: 20 } ];
+  wsPenduduk['!cols'] = colsPenduduk;
+  
+  const colsUMKM = [ { wch: 5 }, { wch: 30 }, { wch: 25 }, { wch: 15 }, { wch: 20 }, { wch: 40 }, { wch: 20 } ];
+  wsUMKM['!cols'] = colsUMKM;
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, wsPenduduk, "Data Penduduk");
+  XLSX.utils.book_append_sheet(wb, wsUMKM, "Data UMKM");
+
+  XLSX.writeFile(wb, "Data_Profil_Desa_dan_UMKM.xlsx");
 }
 
 function registrasiUMKM() {
@@ -367,6 +411,7 @@ function loadPopulationData() {
     let total = 0;
     let male = 0;
     let female = 0;
+    allPendudukData = [];
     
     const ageGroups = {
       '0-14': 0,
@@ -378,6 +423,7 @@ function loadPopulationData() {
 
     snapshot.forEach((doc) => {
       const data = doc.data();
+      allPendudukData.push(data);
       total++;
       if (data.gender === 'Perempuan') female++;
       else male++; // default ke laki-laki jika field gender belum ada
