@@ -37,12 +37,23 @@ async function loadAdminData() {
       if (adminData.avatarUrl) {
         const display = document.getElementById('avatar-display');
         display.innerHTML = `<img src="${adminData.avatarUrl}" class="w-full h-full object-cover rounded-xl" alt="Avatar"/>`;
+        localStorage.setItem('aspira_admin_avatar', adminData.avatarUrl);
       } else {
         const display = document.getElementById('avatar-display');
         if (!document.getElementById('avatar-initials')) {
           display.innerHTML = `<span id="avatar-initials" class="text-3xl font-bold text-gray-400"></span>`;
         }
         setAvatarInitial(adminData.nama || 'Admin');
+        localStorage.removeItem('aspira_admin_avatar');
+      }
+
+      // Sinkronisasi info ke localStorage dan render ulang sidebar
+      localStorage.setItem('aspira_admin_name', adminData.nama || 'Admin Utama');
+      if (adminData.email) localStorage.setItem('aspira_admin_email', adminData.email);
+      if (adminData.telp) localStorage.setItem('aspira_admin_telp', adminData.telp);
+      
+      if (typeof window.updateGlobalSidebarProfile === 'function') {
+        window.updateGlobalSidebarProfile();
       }
     }
   } catch (error) {
