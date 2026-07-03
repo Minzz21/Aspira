@@ -156,6 +156,19 @@ async function simpanPerubahan() {
     await aspirasiCol.doc(activeReport.id).update({
       status: activeReport.status
     });
+    
+    // Simpan ke koleksi notifikasi untuk aplikasi Android warga
+    const notifId = activeReport.id + '_' + activeReport.status;
+    await db.collection('notifikasi').doc(notifId).set({
+      ticketId: activeReport.ticketId || activeReport.id,
+      nama: activeReport.nama,
+      subjek: activeReport.subjek,
+      status: activeReport.status,
+      isRead: false,
+      isNotified: false,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
     showToast(`Status laporan berhasil diperbarui.`);
   } catch (error) {
     console.error("Gagal update status:", error);
