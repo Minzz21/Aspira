@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faFilePdf, faCommentDots, faSpinner, faTriangleExclamation, 
@@ -33,6 +33,11 @@ export default function AspirasiWargaPage() {
   const [selectedAspirasi, setSelectedAspirasi] = useState<Aspirasi | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
+
+  useEffect(() => {
+    setShowOriginal(false);
+  }, [selectedAspirasi?.id]);
 
   // Derived Metrics
   const totalLaporan = rawData.length;
@@ -124,8 +129,9 @@ export default function AspirasiWargaPage() {
   ];
 
   const handleCopyTranscription = () => {
-    if (selectedAspirasi?.transkripsi) {
-      navigator.clipboard.writeText(selectedAspirasi.transkripsi);
+    const textToCopy = showOriginal ? selectedAspirasi?.transkripsi_asli : selectedAspirasi?.transkripsi;
+    if (textToCopy) {
+      navigator.clipboard.writeText(textToCopy);
       setCopied(true);
       showToast("Teks disalin ke clipboard", "success");
       setTimeout(() => setCopied(false), 2000);
@@ -304,18 +310,39 @@ export default function AspirasiWargaPage() {
                 {/* Transkripsi AI */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h5 className="text-xs font-bold text-gray-500 uppercase">Transkripsi AI (Otomatis)</h5>
-                    {selectedAspirasi.transkripsi && (
-                      <button 
-                        onClick={handleCopyTranscription}
-                        className="text-xs font-bold text-primary hover:text-primary-dark transition-colors flex items-center gap-1"
-                      >
-                        <FontAwesomeIcon icon={copied ? faCheck : faCopy} /> {copied ? 'Disalin!' : 'Salin Teks'}
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <h5 className="text-xs font-bold text-gray-500 uppercase">Transkripsi AI (Otomatis)</h5>
+                      {selectedAspirasi.diterjemahkan && (
+                        <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-bold">
+                          {selectedAspirasi.bahasa_asli === 'mak' ? 'Makassar (Terjemahan)' : 'Campuran (Terjemahan)'}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      {selectedAspirasi.diterjemahkan && selectedAspirasi.transkripsi_asli && (
+                        <button 
+                          onClick={() => setShowOriginal(!showOriginal)}
+                          className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          {showOriginal ? 'Lihat Terjemahan' : 'Lihat Teks Asli'}
+                        </button>
+                      )}
+                      
+                      {(selectedAspirasi.transkripsi || selectedAspirasi.transkripsi_asli) && (
+                        <button 
+                          onClick={handleCopyTranscription}
+                          className="text-xs font-bold text-primary hover:text-primary-dark transition-colors flex items-center gap-1"
+                        >
+                          <FontAwesomeIcon icon={copied ? faCheck : faCopy} /> {copied ? 'Disalin!' : 'Salin Teks'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 text-sm text-gray-700 leading-relaxed min-h-[100px] whitespace-pre-wrap">
-                    {selectedAspirasi.transkripsi ? `"${selectedAspirasi.transkripsi}"` : <span className="italic text-gray-400">Tidak ada transkripsi teks yang terlampir pada laporan ini.</span>}
+                    {(showOriginal ? selectedAspirasi.transkripsi_asli : selectedAspirasi.transkripsi) 
+                      ? `"${showOriginal ? selectedAspirasi.transkripsi_asli : selectedAspirasi.transkripsi}"` 
+                      : <span className="italic text-gray-400">Tidak ada transkripsi teks yang terlampir pada laporan ini.</span>}
                   </div>
                 </div>
 

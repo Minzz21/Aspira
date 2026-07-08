@@ -18,6 +18,9 @@ export interface Aspirasi {
   status: 'kritis' | 'proses' | 'selesai' | 'menunggu';
   kritis: boolean;
   transkripsi?: string;
+  transkripsi_asli?: string;
+  bahasa_asli?: string;
+  diterjemahkan?: boolean;
   audioUrl?: string;
   createdAt?: any;
   waktu?: string;
