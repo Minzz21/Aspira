@@ -14,6 +14,23 @@ const Pagination: React.FC<PaginationProps> = ({ totalItems, itemsPerPage, curre
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
+  const getVisiblePages = () => {
+    const total = totalPages;
+    const current = currentPage;
+    
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    
+    if (current <= 4) {
+      return [1, 2, 3, 4, 5, '...', total];
+    }
+    
+    if (current >= total - 3) {
+      return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+    }
+    
+    return [1, '...', current - 1, current, current + 1, '...', total];
+  };
+
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-gray-100 bg-white rounded-b-xl gap-4">
       <span className="text-sm text-gray-600">
@@ -27,19 +44,28 @@ const Pagination: React.FC<PaginationProps> = ({ totalItems, itemsPerPage, curre
         >
           <FontAwesomeIcon icon={faChevronLeft} />
         </button>
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            className={`px-4 py-2 text-sm font-medium border-y border-r border-gray-300 transition-colors ${
-              currentPage === page
-                ? 'z-10 text-primary-light bg-green-50 border-primary-light'
-                : 'text-gray-500 bg-white hover:bg-gray-50 hover:text-gray-700'
-            }`}
-          >
-            {page}
-          </button>
-        ))}
+        {getVisiblePages().map((page, index) => {
+          if (page === '...') {
+            return (
+              <span key={`ellipsis-${index}`} className="px-4 py-2 text-sm font-medium border-y border-r border-gray-300 text-gray-500 bg-white">
+                ...
+              </span>
+            );
+          }
+          return (
+            <button
+              key={page}
+              onClick={() => onPageChange(page as number)}
+              className={`px-4 py-2 text-sm font-medium border-y border-r border-gray-300 transition-colors ${
+                currentPage === page
+                  ? 'z-10 text-primary-light bg-green-50 border-primary-light'
+                  : 'text-gray-500 bg-white hover:bg-gray-50 hover:text-gray-700'
+              }`}
+            >
+              {page}
+            </button>
+          );
+        })}
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
