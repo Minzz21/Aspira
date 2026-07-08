@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faFilePdf, faCommentDots, faSpinner, faTriangleExclamation, 
@@ -33,11 +33,6 @@ export default function AspirasiWargaPage() {
   const [selectedAspirasi, setSelectedAspirasi] = useState<Aspirasi | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showOriginal, setShowOriginal] = useState(false);
-
-  useEffect(() => {
-    setShowOriginal(false);
-  }, [selectedAspirasi?.id]);
 
   // Derived Metrics
   const totalLaporan = rawData.length;
@@ -88,11 +83,12 @@ export default function AspirasiWargaPage() {
         item.nama || item.pelapor || 'Warga',
         item.subjek,
         item.kategori,
-        item.status.toUpperCase()
+        item.status === 'proses' ? 'DIPROSES' : item.status === 'selesai' ? 'SELESAI' : 'MENUNGGU',
+        (item.status === 'kritis' || item.kritis) ? 'KRITIS' : 'NORMAL'
       ]);
 
       autoTable(doc, {
-        head: [['Waktu', 'Pelapor', 'Subjek', 'Kategori', 'Status']],
+        head: [['Waktu', 'Pelapor', 'Subjek', 'Kategori', 'Progres', 'Status']],
         body: tableData,
         startY: 30,
         styles: { fontSize: 9 },
@@ -107,10 +103,7 @@ export default function AspirasiWargaPage() {
     }
   };
 
-  const getStatusBadge = (status: string, isKritis: boolean = false) => {
-    if (status === 'kritis' || isKritis) {
-      return <span className="px-2 py-1 bg-red-100 text-danger text-[10px] font-bold rounded shadow-sm border border-red-200">KRITIS</span>;
-    }
+  const getProgresBadge = (status: string) => {
     if (status === 'proses') {
       return <span className="px-2 py-1 bg-amber-100 text-warning text-[10px] font-bold rounded shadow-sm border border-amber-200">DIPROSES</span>;
     }
@@ -120,18 +113,25 @@ export default function AspirasiWargaPage() {
     return <span className="px-2 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded shadow-sm border border-gray-200">MENUNGGU</span>;
   };
 
+  const getStatusKritisBadge = (status: string, isKritis: boolean = false) => {
+    if (status === 'kritis' || isKritis) {
+      return <span className="px-2 py-1 bg-red-100 text-danger text-[10px] font-bold rounded shadow-sm border border-red-200">KRITIS</span>;
+    }
+    return <span className="px-2 py-1 bg-blue-100 text-blue-600 text-[10px] font-bold rounded shadow-sm border border-blue-200">NORMAL</span>;
+  };
+
   const columns: Column<Aspirasi>[] = [
     { key: 'waktu', header: 'Waktu', render: (item) => <span className="text-xs text-gray-500 whitespace-nowrap">{item.waktu || 'Baru saja'}</span> },
     { key: 'pelapor', header: 'Pelapor', render: (item) => <span className="font-semibold text-gray-900">{item.nama || item.pelapor || 'Warga'}</span> },
     { key: 'subjek', header: 'Subjek', render: (item) => <span className="text-gray-700 truncate max-w-[150px] inline-block">{item.subjek}</span> },
     { key: 'kategori', header: 'Kategori', render: (item) => <span className="text-xs font-medium text-gray-600">{item.kategori}</span> },
-    { key: 'status', header: 'Status', render: (item) => getStatusBadge(item.status, item.kritis) }
+    { key: 'progres', header: 'Progres', render: (item) => getProgresBadge(item.status) },
+    { key: 'status', header: 'Status', render: (item) => getStatusKritisBadge(item.status, item.kritis) }
   ];
 
   const handleCopyTranscription = () => {
-    const textToCopy = showOriginal ? selectedAspirasi?.transkripsi_asli : selectedAspirasi?.transkripsi;
-    if (textToCopy) {
-      navigator.clipboard.writeText(textToCopy);
+    if (selectedAspirasi?.transkripsi) {
+      navigator.clipboard.writeText(selectedAspirasi.transkripsi);
       setCopied(true);
       showToast("Teks disalin ke clipboard", "success");
       setTimeout(() => setCopied(false), 2000);
@@ -285,8 +285,9 @@ export default function AspirasiWargaPage() {
                       <p className="text-xs text-gray-500">{selectedAspirasi.waktu || 'Baru saja'}</p>
                     </div>
                   </div>
-                  <div>
-                    {getStatusBadge(selectedAspirasi.status, selectedAspirasi.kritis)}
+                  <div className="flex gap-2 items-center">
+                    {getProgresBadge(selectedAspirasi.status)}
+                    {getStatusKritisBadge(selectedAspirasi.status, selectedAspirasi.kritis)}
                   </div>
                 </div>
 
@@ -310,39 +311,18 @@ export default function AspirasiWargaPage() {
                 {/* Transkripsi AI */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <h5 className="text-xs font-bold text-gray-500 uppercase">Transkripsi AI (Otomatis)</h5>
-                      {selectedAspirasi.diterjemahkan && (
-                        <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-bold">
-                          {selectedAspirasi.bahasa_asli === 'mak' ? 'Makassar (Terjemahan)' : 'Campuran (Terjemahan)'}
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      {selectedAspirasi.diterjemahkan && selectedAspirasi.transkripsi_asli && (
-                        <button 
-                          onClick={() => setShowOriginal(!showOriginal)}
-                          className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors"
-                        >
-                          {showOriginal ? 'Lihat Terjemahan' : 'Lihat Teks Asli'}
-                        </button>
-                      )}
-                      
-                      {(selectedAspirasi.transkripsi || selectedAspirasi.transkripsi_asli) && (
-                        <button 
-                          onClick={handleCopyTranscription}
-                          className="text-xs font-bold text-primary hover:text-primary-dark transition-colors flex items-center gap-1"
-                        >
-                          <FontAwesomeIcon icon={copied ? faCheck : faCopy} /> {copied ? 'Disalin!' : 'Salin Teks'}
-                        </button>
-                      )}
-                    </div>
+                    <h5 className="text-xs font-bold text-gray-500 uppercase">Transkripsi AI (Otomatis)</h5>
+                    {selectedAspirasi.transkripsi && (
+                      <button 
+                        onClick={handleCopyTranscription}
+                        className="text-xs font-bold text-primary hover:text-primary-dark transition-colors flex items-center gap-1"
+                      >
+                        <FontAwesomeIcon icon={copied ? faCheck : faCopy} /> {copied ? 'Disalin!' : 'Salin Teks'}
+                      </button>
+                    )}
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 text-sm text-gray-700 leading-relaxed min-h-[100px] whitespace-pre-wrap">
-                    {(showOriginal ? selectedAspirasi.transkripsi_asli : selectedAspirasi.transkripsi) 
-                      ? `"${showOriginal ? selectedAspirasi.transkripsi_asli : selectedAspirasi.transkripsi}"` 
-                      : <span className="italic text-gray-400">Tidak ada transkripsi teks yang terlampir pada laporan ini.</span>}
+                    {selectedAspirasi.transkripsi ? `"${selectedAspirasi.transkripsi}"` : <span className="italic text-gray-400">Tidak ada transkripsi teks yang terlampir pada laporan ini.</span>}
                   </div>
                 </div>
 
