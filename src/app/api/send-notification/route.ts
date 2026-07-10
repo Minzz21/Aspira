@@ -1,23 +1,31 @@
 import { NextResponse } from 'next/server';
-import * as admin from 'firebase-admin';
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
+import { getMessaging } from 'firebase-admin/messaging';
 import path from 'path';
 import fs from 'fs';
 
 // Initialize Firebase Admin if not already initialized
-if (!admin.apps.length) {
+if (!getApps().length) {
   try {
-    // We look for the JSON file in the project root
+    // We look for the JSON file in the project root (local dev)
     const serviceAccountPath = path.join(process.cwd(), 'aspira-8e3be-firebase-adminsdk-fbsvc-8d9503230c.json');
     
     if (fs.existsSync(serviceAccountPath)) {
       const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
       
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
+      initializeApp({
+        credential: cert(serviceAccount)
       });
-      console.log("Firebase Admin initialized successfully.");
+      console.log("Firebase Admin initialized successfully from file.");
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+      // Vercel deployment fallback using environment variable
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+      initializeApp({
+        credential: cert(serviceAccount)
+      });
+      console.log("Firebase Admin initialized successfully from env variable.");
     } else {
-      console.error("Service account JSON not found at", serviceAccountPath);
+      console.error("Service account JSON not found and FIREBASE_SERVICE_ACCOUNT_KEY env variable is not set.");
     }
   } catch (error) {
     console.error("Failed to initialize Firebase Admin:", error);
@@ -36,7 +44,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!admin.apps.length) {
+    if (!getApps().length) {
        return NextResponse.json(
         { error: 'Firebase Admin not initialized properly' },
         { status: 500 }
@@ -58,7 +66,7 @@ export async function POST(req: Request) {
       }
     };
 
-    const response = await admin.messaging().send(payload);
+    const response = await getMessaging().send(payload);
     
     return NextResponse.json({ success: true, messageId: response });
   } catch (error: any) {
