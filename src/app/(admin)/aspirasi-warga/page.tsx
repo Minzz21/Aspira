@@ -158,7 +158,7 @@ export default function AspirasiWargaPage() {
       // Buat dokumen notifikasi untuk warga
       const notifCol = collection(db, 'notifikasi');
       await addDoc(notifCol, {
-        ticketId: selectedAspirasi.id.substring(0, 8).toUpperCase(), // or just use ID
+        ticketId: selectedAspirasi.id,
         subjek: selectedAspirasi.subjek,
         status: newStatus,
         nama: selectedAspirasi.pelapor || selectedAspirasi.nama,
