@@ -15,7 +15,7 @@ import AudioPlayer from '@/components/ui/AudioPlayer';
 import { useToast } from '@/contexts/ToastContext';
 import { useFirestoreCollection } from '@/hooks/useFirestoreCollection';
 import { aspirasiCol } from '@/lib/firestore';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Aspirasi } from '@/types';
 import jsPDF from 'jspdf';
@@ -154,6 +154,19 @@ export default function AspirasiWargaPage() {
     try {
       const docRef = doc(db, 'aspirasi', selectedAspirasi.id);
       await updateDoc(docRef, { status: newStatus });
+      
+      // Buat dokumen notifikasi untuk warga
+      const notifCol = collection(db, 'notifikasi');
+      await addDoc(notifCol, {
+        ticketId: selectedAspirasi.id.substring(0, 8).toUpperCase(), // or just use ID
+        subjek: selectedAspirasi.subjek,
+        status: newStatus,
+        nama: selectedAspirasi.pelapor || selectedAspirasi.nama,
+        isRead: false,
+        isNotified: false,
+        createdAt: serverTimestamp()
+      });
+      
       // Update local selected item state
       setSelectedAspirasi({ ...selectedAspirasi, status: newStatus });
       showToast(`Status laporan berhasil diubah ke ${newStatus.toUpperCase()}`, "success");
