@@ -167,6 +167,24 @@ export default function AspirasiWargaPage() {
         createdAt: serverTimestamp()
       });
       
+      // Kirim Instant Push Notification lewat API FCM
+      try {
+        const username = selectedAspirasi.pelapor || selectedAspirasi.nama;
+        const topicName = "user_" + username.replace(/\s+/g, '_').toLowerCase();
+        
+        await fetch('/api/send-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            topic: topicName,
+            title: `Laporan ${newStatus.toUpperCase()}`,
+            message: `Laporan Anda tentang "${selectedAspirasi.subjek}" telah berubah status menjadi ${newStatus}.`
+          })
+        });
+      } catch (err) {
+        console.error("Gagal menembak API FCM", err);
+      }
+
       // Update local selected item state
       setSelectedAspirasi({ ...selectedAspirasi, status: newStatus });
       showToast(`Status laporan berhasil diubah ke ${newStatus.toUpperCase()}`, "success");
