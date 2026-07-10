@@ -178,7 +178,8 @@ export default function AspirasiWargaPage() {
           body: JSON.stringify({
             topic: topicName,
             title: `Laporan ${newStatus.toUpperCase()}`,
-            message: `Laporan Anda tentang "${selectedAspirasi.subjek}" telah berubah status menjadi ${newStatus}.`
+            message: `Laporan Anda tentang "${selectedAspirasi.subjek}" telah berubah status menjadi ${newStatus}.`,
+            ticketId: selectedAspirasi.id
           })
         });
       } catch (err) {

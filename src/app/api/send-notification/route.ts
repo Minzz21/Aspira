@@ -57,6 +57,9 @@ export async function POST(req: Request) {
         title: title,
         body: message,
       },
+      data: {
+        ticketId: body.ticketId || ""
+      },
       android: {
         priority: 'high' as const,
         notification: {
