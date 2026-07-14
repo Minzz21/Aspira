@@ -60,7 +60,7 @@ export default function Sidebar() {
         <img src="/logo.png" alt="ASPIRA AI" className="w-8 h-8 rounded-lg shrink-0 object-cover" />
         <div className={`transition-opacity duration-300 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}>
           <h2 className="font-extrabold text-lg tracking-tight">ASPIRA AI</h2>
-          <p className="text-[9px] font-mono text-green-300 uppercase tracking-widest mt-0.5">Admin Portal</p>
+          
         </div>
       </div>
 
