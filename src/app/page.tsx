@@ -73,21 +73,7 @@ export default function LoginPage() {
             Kelola administrasi, dana desa, dan aspirasi warga dalam satu sistem yang aman, transparan, dan berwibawa.
           </p>
 
-          {/* Glass Cards */}
-          <div className="flex gap-4 mt-12 pt-8">
-            <div className="flex-1 p-5 rounded-xl border border-white/20 relative overflow-hidden group bg-white/5 backdrop-blur-sm">
-              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition duration-300"></div>
-              <p className="text-[10px] font-bold text-green-200 uppercase tracking-widest mb-2">Total Desa Terintegrasi</p>
-              <p className="text-4xl font-bold text-white">3</p>
-            </div>
-            <div className="flex-1 p-5 rounded-xl border border-white/20 relative overflow-hidden group bg-white/5 backdrop-blur-sm">
-              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition duration-300"></div>
-              <p className="text-[10px] font-bold text-green-200 uppercase tracking-widest mb-2">Status Sistem</p>
-              <p className="text-2xl font-bold text-white flex items-center gap-2 mt-1">
-                <span className="w-3 h-3 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)] animate-pulse"></span> Optimal
-              </p>
-            </div>
-          </div>
+         
         </div>
       </div>
 
@@ -99,7 +85,7 @@ export default function LoginPage() {
             <img src="/logo.png" alt="ASPIRA AI" className="w-12 h-12 rounded-xl object-cover shadow-lg shadow-primary/20" />
             <div>
               <h2 className="font-extrabold text-xl text-primary tracking-tight">ASPIRA AI</h2>
-              <p className="text-xs font-mono text-gray-500 uppercase tracking-widest mt-0.5">Village Governance Portal</p>
+             
             </div>
           </div>
 
@@ -150,18 +136,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Checkbox Remember */}
-            <div className="flex items-center py-1">
-              <label className="flex items-center gap-2.5 cursor-pointer group">
-                <input 
-                  type="checkbox" 
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2 cursor-pointer transition-colors" 
-                />
-                <span className="text-xs font-medium text-gray-600 group-hover:text-gray-800 transition">Ingat perangkat ini selama 30 hari</span>
-              </label>
-            </div>
+           
 
             {/* Button Submit */}
             <button 
@@ -194,12 +169,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="mt-16 pt-6 border-t border-gray-200/60 flex flex-wrap gap-x-6 gap-y-2 text-[10px] font-mono text-gray-400">
-            <span>&copy; 2024 Kementerian Desa &amp; PDTT</span>
-            <a href="#" className="hover:text-gray-600 transition">Syarat &amp; Ketentuan</a>
-            <a href="#" className="hover:text-gray-600 transition">Privasi</a>
-          </div>
+          
         </div>
       </div>
     </div>
