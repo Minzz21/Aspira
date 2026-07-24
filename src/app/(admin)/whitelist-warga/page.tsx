@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUsers, faPlus, faPenToSquare, faTrash, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import { faUsers, faPlus, faPenToSquare, faTrash, faCircleNotch, faMars, faVenus } from '@fortawesome/free-solid-svg-icons';
 import StatCard from '@/components/ui/StatCard';
 import FilterChips from '@/components/ui/FilterChips';
 import SearchInput from '@/components/ui/SearchInput';
@@ -184,6 +184,11 @@ export default function WhitelistWargaPage() {
     { key: 'nama', header: 'Nama Lengkap', render: (item) => <span className="font-semibold text-gray-900">{item.nama}</span> },
     { key: 'nik', header: 'NIK', render: (item) => <span className="font-mono text-gray-600 bg-gray-50 px-2 py-1 rounded border border-gray-200">{item.nik}</span> },
     { key: 'dusun', header: 'Dusun' },
+    { key: 'gender', header: 'Jenis Kelamin', render: (item) => (
+      <span className={`px-2 py-1 text-xs font-semibold rounded-md ${item.gender === 'Laki-laki' ? 'bg-indigo-100 text-indigo-700' : 'bg-pink-100 text-pink-700'}`}>
+        {item.gender}
+      </span>
+    )},
     { key: 'status', header: 'Status', render: (item) => getStatusBadge(item.status) },
     { key: 'tanggal', header: 'Tgl. Daftar', render: (item) => item.tanggal },
     {
@@ -233,13 +238,39 @@ export default function WhitelistWargaPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <StatCard 
           icon={faUsers}
           iconBg="bg-blue-100"
           iconColor="text-blue-600"
           label="Total Warga Terdaftar"
           value={rawData.length}
+        />
+        <StatCard 
+          icon={faMars}
+          iconBg="bg-indigo-100"
+          iconColor="text-indigo-600"
+          label="Laki-laki"
+          value={rawData.filter(w => w.gender === 'Laki-laki').length}
+          badge={{
+            text: rawData.length > 0 
+              ? `${((rawData.filter(w => w.gender === 'Laki-laki').length / rawData.length) * 100).toFixed(1)}% Populasi` 
+              : '0%',
+            color: 'bg-indigo-100 text-indigo-700'
+          }}
+        />
+        <StatCard 
+          icon={faVenus}
+          iconBg="bg-pink-100"
+          iconColor="text-pink-600"
+          label="Perempuan"
+          value={rawData.filter(w => w.gender === 'Perempuan').length}
+          badge={{
+            text: rawData.length > 0 
+              ? `${((rawData.filter(w => w.gender === 'Perempuan').length / rawData.length) * 100).toFixed(1)}% Populasi` 
+              : '0%',
+            color: 'bg-pink-100 text-pink-700'
+          }}
         />
       </div>
 

@@ -18,6 +18,10 @@ import { faCommentDots } from '@fortawesome/free-regular-svg-icons';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useFirestoreCollection } from '@/hooks/useFirestoreCollection';
+import { useOverdueReports } from '@/hooks/useOverdueReports';
+import { aspirasiCol } from '@/lib/firestore';
+import { Aspirasi } from '@/types';
 
 const menuItems = [
   { label: 'Dashboard Desa', icon: faTableCellsLarge, route: '/dashboard' },
@@ -34,6 +38,10 @@ export default function Sidebar() {
   const { showToast } = useToast();
   const pathname = usePathname();
   const router = useRouter();
+
+  // Overdue reports for badge
+  const { data: listAspirasi } = useFirestoreCollection<Aspirasi>(aspirasiCol);
+  const { overdueCount } = useOverdueReports(listAspirasi);
 
   const handleLogout = () => {
     logout();
@@ -84,6 +92,16 @@ export default function Sidebar() {
               <span className={`text-sm font-medium whitespace-nowrap transition-all duration-300 overflow-hidden ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'}`}>
                 {item.label}
               </span>
+
+              {/* Overdue badge for Aspirasi Warga */}
+              {item.route === '/aspirasi-warga' && overdueCount > 0 && !isCollapsed && (
+                <span className="ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] text-center leading-tight animate-pulse">
+                  {overdueCount}
+                </span>
+              )}
+              {item.route === '/aspirasi-warga' && overdueCount > 0 && isCollapsed && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+              )}
               
               {/* Custom Tooltip when collapsed */}
               {isCollapsed && (

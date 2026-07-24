@@ -4,7 +4,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faFilePdf, faCommentDots, faSpinner, faTriangleExclamation, 
-  faSearch, faCopy, faCheck, faCircleNotch, faLocationDot
+  faSearch, faCopy, faCheck, faCircleNotch, faLocationDot,
+  faWandMagicSparkles, faRobot, faRotateRight, faClock
 } from '@fortawesome/free-solid-svg-icons';
 import StatCard from '@/components/ui/StatCard';
 import FilterChips from '@/components/ui/FilterChips';
@@ -12,28 +13,55 @@ import SearchInput from '@/components/ui/SearchInput';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Pagination from '@/components/ui/Pagination';
 import AudioPlayer from '@/components/ui/AudioPlayer';
+import OverdueBanner from '@/components/ui/OverdueBanner';
 import { useToast } from '@/contexts/ToastContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useFirestoreCollection } from '@/hooks/useFirestoreCollection';
+import { useOverdueReports } from '@/hooks/useOverdueReports';
 import { aspirasiCol } from '@/lib/firestore';
-import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, collection, addDoc, serverTimestamp, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Aspirasi } from '@/types';
+import { Aspirasi, AdminPerformance } from '@/types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export default function AspirasiWargaPage() {
   const { data: rawData, loading } = useFirestoreCollection<Aspirasi>(aspirasiCol);
   const { showToast } = useToast();
+  const { admin } = useAuth();
 
   const [filter, setFilter] = useState('Semua');
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const [selectedAspirasi, setSelectedAspirasi] = useState<Aspirasi | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedOriginal, setCopiedOriginal] = useState(false);
+
+  // AI Suggestion State
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  // Overdue & Performance
+  const { overdueCount, isOverdue, getOverdueDays } = useOverdueReports(rawData);
+  const [liveScore, setLiveScore] = useState(100);
+
+  useEffect(() => {
+    if (!admin?.nik) return;
+    const loadScore = async () => {
+      const docRef = doc(db, 'admin_performance', admin.nik);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const perf = snap.data() as AdminPerformance;
+        const penalty = overdueCount * 5;
+        setLiveScore(Math.max(0, Math.min(100, perf.score - penalty)));
+      }
+    };
+    loadScore();
+  }, [admin?.nik, overdueCount]);
 
   // Derived Metrics
   const totalLaporan = rawData.length;
@@ -45,6 +73,9 @@ export default function AspirasiWargaPage() {
     return rawData.filter(item => {
       if (filter === 'Kritis' && item.status !== 'kritis' && !item.kritis) return false;
       if (filter === 'Selesai' && item.status !== 'selesai') return false;
+      if (filter === 'Menunggu' && item.status !== 'menunggu') return false;
+      if (filter === 'Diproses' && item.status !== 'proses') return false;
+      if (filter === 'Terlambat' && !isOverdue(item)) return false;
       
       if (search) {
         const query = search.toLowerCase();
@@ -126,9 +157,55 @@ export default function AspirasiWargaPage() {
     { key: 'pelapor', header: 'Pelapor', render: (item) => <span className="font-semibold text-gray-900">{item.nama || item.pelapor || 'Warga'}</span> },
     { key: 'subjek', header: 'Subjek', render: (item) => <span className="text-gray-700 truncate max-w-[150px] inline-block">{item.subjek}</span> },
     { key: 'kategori', header: 'Kategori', render: (item) => <span className="text-xs font-medium text-gray-600">{item.kategori}</span> },
-    { key: 'progres', header: 'Progres', render: (item) => getProgresBadge(item.status) },
+    { key: 'progres', header: 'Progres', render: (item) => {
+      if (isOverdue(item)) {
+        const days = getOverdueDays(item);
+        return (
+          <span className="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded shadow-sm border border-red-200 animate-pulse" title={`Laporan ini sudah menunggu ${days} hari`}>
+            <FontAwesomeIcon icon={faClock} className="mr-1" />TERLAMBAT
+          </span>
+        );
+      }
+      return getProgresBadge(item.status);
+    }},
     { key: 'status', header: 'Status', render: (item) => getStatusKritisBadge(item.status, item.kritis) }
   ];
+
+  // Reset AI suggestion when selecting a different aspirasi
+  useEffect(() => {
+    setAiSuggestion(null);
+    setAiError(null);
+  }, [selectedAspirasi?.id]);
+
+  const handleRequestAISuggestion = async () => {
+    if (!selectedAspirasi) return;
+    setIsLoadingAI(true);
+    setAiError(null);
+    setAiSuggestion(null);
+    try {
+      const res = await fetch('/api/ai-suggestion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subjek: selectedAspirasi.subjek,
+          kategori: selectedAspirasi.kategori,
+          transkripsi: selectedAspirasi.transkripsi,
+          status: selectedAspirasi.status,
+          kritis: selectedAspirasi.kritis,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal mendapatkan saran AI.');
+      }
+      setAiSuggestion(data.suggestion);
+    } catch (err: any) {
+      setAiError(err.message || 'Terjadi kesalahan saat menghubungi AI.');
+      showToast('Gagal mendapatkan saran AI.', 'error');
+    } finally {
+      setIsLoadingAI(false);
+    }
+  };
 
   const handleCopyTranscription = () => {
     if (selectedAspirasi?.transkripsi) {
@@ -186,6 +263,55 @@ export default function AspirasiWargaPage() {
         console.error("Gagal menembak API FCM", err);
       }
 
+      // Update Admin Performance Score
+      if (newStatus === 'selesai' && admin?.nik) {
+        try {
+          const perfRef = doc(db, 'admin_performance', admin.nik);
+          const perfSnap = await getDoc(perfRef);
+          const OVERDUE_THRESHOLD = 48 * 60 * 60 * 1000;
+          const createdMs = selectedAspirasi.createdAt?.toMillis?.() || 0;
+          const elapsed = Date.now() - createdMs;
+          const wasOnTime = elapsed <= OVERDUE_THRESHOLD;
+          const wasKritisFast = selectedAspirasi.kritis && elapsed <= 24 * 60 * 60 * 1000;
+
+          if (perfSnap.exists()) {
+            const perf = perfSnap.data() as AdminPerformance;
+            let newScore = perf.score;
+            if (wasOnTime) newScore += 2;
+            if (wasKritisFast) newScore += 5;
+            newScore = Math.max(0, Math.min(100, newScore));
+            const newStreak = wasOnTime ? perf.streak + 1 : 0;
+            await setDoc(perfRef, {
+              ...perf,
+              score: newScore,
+              streak: newStreak,
+              bestStreak: Math.max(perf.bestStreak, newStreak),
+              totalResolved: perf.totalResolved + 1,
+              lastUpdated: serverTimestamp()
+            });
+            setLiveScore(newScore);
+          } else {
+            let initScore = 100;
+            if (wasOnTime) initScore += 2;
+            if (wasKritisFast) initScore += 5;
+            initScore = Math.min(100, initScore);
+            await setDoc(perfRef, {
+              adminId: admin.nik,
+              adminName: admin.nama,
+              score: initScore,
+              streak: wasOnTime ? 1 : 0,
+              bestStreak: wasOnTime ? 1 : 0,
+              totalResolved: 1,
+              totalOverdue: 0,
+              lastUpdated: serverTimestamp()
+            });
+            setLiveScore(initScore);
+          }
+        } catch (perfErr) {
+          console.error('Gagal update skor kinerja:', perfErr);
+        }
+      }
+
       // Update local selected item state
       setSelectedAspirasi({ ...selectedAspirasi, status: newStatus });
       showToast(`Status laporan berhasil diubah ke ${newStatus.toUpperCase()}`, "success");
@@ -221,6 +347,9 @@ export default function AspirasiWargaPage() {
         </button>
       </div>
 
+      {/* Overdue Alert Banner */}
+      <OverdueBanner overdueCount={overdueCount} score={liveScore} hideLink />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <StatCard icon={faCommentDots} iconBg="bg-blue-100" iconColor="text-blue-600" label="Total Laporan" value={totalLaporan} />
         <StatCard icon={faSpinner} iconBg="bg-amber-100" iconColor="text-warning" label="Sedang Diproses" value={diproses} />
@@ -237,8 +366,11 @@ export default function AspirasiWargaPage() {
               <FilterChips 
                 options={[
                   { label: 'Semua', value: 'Semua' },
+                  { label: 'Menunggu', value: 'Menunggu' },
+                  { label: 'Diproses', value: 'Diproses' },
+                  { label: 'Selesai', value: 'Selesai' },
                   { label: 'Kritis', value: 'Kritis' },
-                  { label: 'Selesai', value: 'Selesai' }
+                  { label: `Terlambat${overdueCount > 0 ? ` (${overdueCount})` : ''}`, value: 'Terlambat' }
                 ]}
                 activeValue={filter}
                 onChange={setFilter}
@@ -267,11 +399,15 @@ export default function AspirasiWargaPage() {
                       </td>
                     </tr>
                   ) : (
-                    paginatedData.map(item => (
+                    paginatedData.map(item => {
+                      const itemOverdue = isOverdue(item);
+                      const overdueDays = getOverdueDays(item);
+                      return (
                       <tr 
                         key={item.id} 
                         onClick={() => setSelectedAspirasi(item)}
-                        className={`hover:bg-green-50/30 transition-colors cursor-pointer ${selectedAspirasi?.id === item.id ? 'bg-green-50/50 border-l-2 border-primary' : 'border-l-2 border-transparent'}`}
+                        className={`transition-colors cursor-pointer ${itemOverdue ? 'bg-red-50/40 hover:bg-red-50/60' : 'hover:bg-green-50/30'} ${selectedAspirasi?.id === item.id ? 'bg-green-50/50 border-l-2 border-primary' : 'border-l-2 border-transparent'}`}
+                        title={itemOverdue ? `Laporan ini sudah menunggu ${overdueDays} hari` : undefined}
                       >
                         {columns.map(col => (
                           <td key={col.key} className="p-4">
@@ -279,7 +415,8 @@ export default function AspirasiWargaPage() {
                           </td>
                         ))}
                       </tr>
-                    ))
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -336,9 +473,13 @@ export default function AspirasiWargaPage() {
                 {/* Subjek & Kategori */}
                 <div className="bg-blue-50/50 rounded-lg p-4 border border-blue-100/50">
                   <h4 className="font-bold text-gray-900 mb-1">{selectedAspirasi.subjek}</h4>
-                  <div className="flex items-center gap-2 text-xs text-blue-600 font-medium">
-                    <span className="px-2 py-0.5 bg-blue-100 rounded">{selectedAspirasi.kategori}</span>
-                    <span className="flex items-center gap-1"><FontAwesomeIcon icon={faLocationDot}/> Lokasi Terlampir</span>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-blue-600 font-medium">
+                    <span className="px-2 py-0.5 bg-blue-100 rounded whitespace-nowrap">{selectedAspirasi.kategori}</span>
+                    {selectedAspirasi.lokasi && (
+                      <span className="flex items-center gap-1 bg-blue-100/50 px-2 py-0.5 rounded break-words">
+                        <FontAwesomeIcon icon={faLocationDot} /> {selectedAspirasi.lokasi}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -402,6 +543,78 @@ export default function AspirasiWargaPage() {
                         : <span className="italic text-gray-400">Tidak ada transkripsi teks yang terlampir pada laporan ini.</span>}
                     </div>
                   </div>
+                </div>
+
+                {/* AI Suggestion Panel */}
+                <div className="border-t border-gray-100 pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h5 className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                      <FontAwesomeIcon icon={faRobot} className="text-purple-500" />
+                      Saran Solusi AI
+                    </h5>
+                    {aiSuggestion && (
+                      <button
+                        onClick={handleRequestAISuggestion}
+                        disabled={isLoadingAI}
+                        className="text-[10px] font-bold text-purple-600 hover:text-purple-800 transition-colors flex items-center gap-1"
+                      >
+                        <FontAwesomeIcon icon={faRotateRight} className={isLoadingAI ? 'fa-spin' : ''} /> Regenerasi
+                      </button>
+                    )}
+                  </div>
+
+                  {!aiSuggestion && !isLoadingAI && !aiError && (
+                    <button
+                      onClick={handleRequestAISuggestion}
+                      className="w-full py-3 rounded-lg text-sm font-bold transition-all bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-indigo-700 flex items-center justify-center gap-2"
+                    >
+                      <FontAwesomeIcon icon={faWandMagicSparkles} />
+                      Minta Saran AI untuk Masalah Ini
+                    </button>
+                  )}
+
+                  {isLoadingAI && (
+                    <div className="bg-purple-50/50 rounded-lg p-4 border border-purple-100 flex flex-col items-center justify-center gap-3 min-h-[120px]">
+                      <div className="relative">
+                        <div className="w-10 h-10 rounded-full border-2 border-purple-200 border-t-purple-600 animate-spin" />
+                        <FontAwesomeIcon icon={faRobot} className="absolute inset-0 m-auto text-purple-500 text-sm" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs font-bold text-purple-700">AI Gemini sedang menganalisis...</p>
+                        <p className="text-[10px] text-purple-500 mt-0.5">Menyusun saran solusi terbaik</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {aiError && !isLoadingAI && (
+                    <div className="bg-red-50 rounded-lg p-4 border border-red-100">
+                      <p className="text-xs text-red-600 font-medium mb-2">{aiError}</p>
+                      <button
+                        onClick={handleRequestAISuggestion}
+                        className="text-xs font-bold text-red-700 hover:text-red-900 underline"
+                      >
+                        Coba Lagi
+                      </button>
+                    </div>
+                  )}
+
+                  {aiSuggestion && !isLoadingAI && (
+                    <div className="bg-gradient-to-br from-purple-50/80 to-indigo-50/80 rounded-lg p-4 border border-purple-100/70 shadow-sm">
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <FontAwesomeIcon icon={faWandMagicSparkles} className="text-purple-500 text-xs" />
+                        <span className="text-[10px] font-bold text-purple-600 uppercase">Gemini 3.1 Flash Lite</span>
+                      </div>
+                      <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap ai-suggestion-content">
+                        {aiSuggestion.split('\n').map((line, i) => {
+                          // Bold formatting
+                          const formatted = line.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+                          return (
+                            <p key={i} className={`${line.trim() === '' ? 'h-2' : 'mb-1'}`} dangerouslySetInnerHTML={{ __html: formatted }} />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Panel Tindak Lanjut */}

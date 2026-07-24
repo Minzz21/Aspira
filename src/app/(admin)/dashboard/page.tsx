@@ -1,22 +1,82 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFileAlt, faExclamationCircle, faStore, faEye, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import { faFileAlt, faExclamationCircle, faStore, faEye, faCircleNotch, faCheckCircle, faClock } from '@fortawesome/free-solid-svg-icons';
 import StatCard from '@/components/ui/StatCard';
 import ProgressBar from '@/components/ui/ProgressBar';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Modal from '@/components/ui/Modal';
+import PerformanceGauge from '@/components/ui/PerformanceGauge';
+import OverdueBanner from '@/components/ui/OverdueBanner';
+import StreakBadge from '@/components/ui/StreakBadge';
 import { useFirestoreCollection } from '@/hooks/useFirestoreCollection';
-import { aspirasiCol, umkmCol } from '@/lib/firestore';
-import { Aspirasi, UMKM } from '@/types';
+import { useOverdueReports } from '@/hooks/useOverdueReports';
+import { aspirasiCol, umkmCol, adminPerformanceCol } from '@/lib/firestore';
+import { Aspirasi, UMKM, AdminPerformance } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
+const OVERDUE_PENALTY_PER_REPORT = 5;
 
 export default function DashboardPage() {
   const { data: listAspirasi, loading: loadingAspirasi } = useFirestoreCollection<Aspirasi>(aspirasiCol);
   const { data: listUmkm, loading: loadingUmkm } = useFirestoreCollection<UMKM>(umkmCol);
+  const { admin } = useAuth();
 
   const [selectedAspirasi, setSelectedAspirasi] = useState<Aspirasi | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Performance state
+  const [performance, setPerformance] = useState<AdminPerformance>({
+    adminId: '',
+    adminName: '',
+    score: 100,
+    streak: 0,
+    bestStreak: 0,
+    totalResolved: 0,
+    totalOverdue: 0,
+  });
+
+  const { overdueCount, overdueReports } = useOverdueReports(listAspirasi);
+
+  // Load/initialize admin performance from Firestore
+  useEffect(() => {
+    if (!admin?.nik) return;
+    
+    const loadPerformance = async () => {
+      const docRef = doc(db, 'admin_performance', admin.nik);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        setPerformance({ id: docSnap.id, ...docSnap.data() } as AdminPerformance);
+      } else {
+        // Initialize performance for new admin
+        const initial: AdminPerformance = {
+          adminId: admin.nik,
+          adminName: admin.nama,
+          score: 100,
+          streak: 0,
+          bestStreak: 0,
+          totalResolved: 0,
+          totalOverdue: 0,
+        };
+        await setDoc(docRef, initial);
+        setPerformance(initial);
+      }
+    };
+    
+    loadPerformance();
+  }, [admin?.nik]);
+
+  // Calculate real-time score based on overdue reports
+  const liveScore = useMemo(() => {
+    const penalty = overdueCount * OVERDUE_PENALTY_PER_REPORT;
+    return Math.max(0, Math.min(100, performance.score - penalty));
+  }, [performance.score, overdueCount]);
+
+  const totalResolved = listAspirasi.filter(a => a.status === 'selesai').length;
 
   if (loadingAspirasi || loadingUmkm) {
     return (
@@ -93,6 +153,9 @@ export default function DashboardPage() {
         <p className="text-sm text-gray-500">Pantau statistik utama dan laporan warga secara real-time.</p>
       </div>
 
+      {/* Overdue Alert Banner */}
+      <OverdueBanner overdueCount={overdueCount} score={liveScore} />
+
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatCard 
@@ -119,28 +182,61 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Performance Widget + Categories + Recent */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* Progress Bars (Kategori) */}
-        <div className="xl:col-span-1 bg-white p-6 rounded-xl border border-gray-100 shadow-sm h-fit">
-          <h2 className="text-lg font-bold text-gray-900 mb-6">Aspirasi per Kategori</h2>
-          <div className="space-y-5">
-            {topCategories.length > 0 ? (
-              topCategories.map(([cat, count], index) => (
-                <ProgressBar 
-                  key={cat} 
-                  value={count} 
-                  max={totalAspirasi} 
-                  color={categoryColors[index % categoryColors.length]} 
-                  label={cat} 
-                />
-              ))
-            ) : (
-              <p className="text-sm text-gray-500">Belum ada data kategori.</p>
-            )}
+        {/* Left: Categories + Performance */}
+        <div className="xl:col-span-1 space-y-6">
+          {/* Performance Widget */}
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+            <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+              Skor Kinerja Admin
+            </h2>
+            
+            <div className="flex flex-col items-center gap-4">
+              <PerformanceGauge score={liveScore} size={130} />
+              
+              <div className="w-full border-t border-gray-100 pt-4 space-y-3">
+                <StreakBadge streak={performance.streak} bestStreak={performance.bestStreak} />
+                
+                <div className="flex items-center gap-2">
+                  <FontAwesomeIcon icon={faCheckCircle} className="text-sm text-green-500" />
+                  <span className="text-sm text-gray-700">
+                    Diselesaikan: <span className="font-bold">{totalResolved}</span>
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <FontAwesomeIcon icon={faClock} className="text-sm text-red-400" />
+                  <span className="text-sm text-gray-700">
+                    Terlambat saat ini: <span className="font-bold text-red-600">{overdueCount}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Bars (Kategori) */}
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm h-fit">
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Aspirasi per Kategori</h2>
+            <div className="space-y-5">
+              {topCategories.length > 0 ? (
+                topCategories.map(([cat, count], index) => (
+                  <ProgressBar 
+                    key={cat} 
+                    value={count} 
+                    max={totalAspirasi} 
+                    color={categoryColors[index % categoryColors.length]} 
+                    label={cat} 
+                  />
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">Belum ada data kategori.</p>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Data Table (Terbaru) */}
+        {/* Right: Data Table (Terbaru) */}
         <div className="xl:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm">
           <div className="p-6 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-900">Laporan & Aspirasi Terkini</h2>

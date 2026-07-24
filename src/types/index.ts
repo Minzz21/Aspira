@@ -25,6 +25,7 @@ export interface Aspirasi {
   createdAt?: any;
   waktu?: string;
   pelapor?: string; // Sometimes fallback for nama
+  lokasi?: string;
 }
 
 export interface WhitelistWarga {
@@ -62,4 +63,16 @@ export interface Warga {
   gender: 'Laki-laki' | 'Perempuan';
   dusun: string;
   createdAt?: any;
+}
+
+export interface AdminPerformance {
+  id?: string;
+  adminId: string;
+  adminName: string;
+  score: number;
+  streak: number;
+  bestStreak: number;
+  totalResolved: number;
+  totalOverdue: number;
+  lastUpdated?: any;
 }
