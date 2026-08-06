@@ -16,24 +16,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const prompt = `Kamu adalah asisten AI untuk sistem administrasi desa bernama ASPIRA. Tugasmu adalah memberikan saran solusi yang praktis dan actionable kepada admin desa untuk menyelesaikan masalah/laporan dari warga.
-
-Berikut detail laporan warga:
-- Subjek Laporan: ${subjek}
+    const prompt = `Berikan solusi langsung, singkat, dan praktis untuk laporan warga berikut:
+- Subjek: ${subjek}
 - Kategori: ${kategori || 'Tidak ditentukan'}
-- Status Saat Ini: ${status || 'menunggu'}
-- Tingkat Kritis: ${kritis ? 'KRITIS - Perlu penanganan segera' : 'Normal'}
-- Isi Laporan/Transkripsi: ${transkripsi || 'Tidak ada transkripsi tersedia'}
+- Kritis: ${kritis ? 'Ya (Penanganan segera)' : 'Tidak'}
+- Laporan: ${transkripsi || 'Tidak tersedia'}
 
-Berikan saran solusi dalam format berikut:
-1. **Ringkasan Masalah**: Jelaskan inti masalah dalam 1-2 kalimat.
-2. **Saran Tindakan** (3-5 langkah konkret yang bisa dilakukan admin desa):
-   - Langkah-langkah harus spesifik, praktis, dan realistis untuk level pemerintahan desa.
-   - Sertakan pihak terkait yang perlu dihubungi jika perlu.
-3. **Estimasi Waktu Penyelesaian**: Berikan perkiraan waktu yang realistis.
-4. **Prioritas**: Tentukan level prioritas (Rendah/Sedang/Tinggi/Sangat Tinggi).
-
-Jawab dalam Bahasa Indonesia yang formal namun mudah dipahami. Jangan gunakan format markdown header (#), cukup gunakan bold (**) dan bullet points. Langsung ke inti saran, jangan bertele-tele.`;
+Berikan maksimal 3-5 poin langkah tindakan konkret yang harus dilakukan admin desa. Langsung pada intinya (to the point), tanpa basa-basi, tanpa ringkasan, tanpa kata pengantar, tanpa estimasi waktu atau prioritas. Gunakan format bullet points atau penomoran biasa.`;
 
     const geminiResponse = await fetch(GEMINI_API_URL, {
       method: 'POST',
