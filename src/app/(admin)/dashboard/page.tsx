@@ -119,8 +119,35 @@ export default function DashboardPage() {
     }
   };
 
+  const formatWaktu = (item: Aspirasi) => {
+    if (item.createdAt) {
+      try {
+        let date: Date;
+        if (typeof item.createdAt.toDate === 'function') {
+          date = item.createdAt.toDate();
+        } else if (typeof item.createdAt.toMillis === 'function') {
+          date = new Date(item.createdAt.toMillis());
+        } else if (item.createdAt.seconds) {
+          date = new Date(item.createdAt.seconds * 1000);
+        } else {
+          date = new Date(item.createdAt);
+        }
+        
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${day}-${month}-${year} ${hours}:${minutes}`;
+      } catch(e) {
+        return item.waktu || 'Baru saja';
+      }
+    }
+    return item.waktu || 'Baru saja';
+  };
+
   const columns: Column<Aspirasi>[] = [
-    { key: 'tanggal', header: 'Waktu / Tanggal', render: (item) => item.waktu || 'Baru saja' },
+    { key: 'tanggal', header: 'Waktu / Tanggal', render: (item) => <span className="text-xs text-gray-500 whitespace-nowrap">{formatWaktu(item)}</span> },
     { key: 'nama', header: 'Pelapor', render: (item) => item.nama || item.pelapor || 'Warga' },
     { key: 'subjek', header: 'Subjek Aspirasi' },
     { key: 'kategori', header: 'Kategori' },

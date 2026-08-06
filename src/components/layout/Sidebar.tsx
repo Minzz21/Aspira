@@ -25,7 +25,7 @@ import { Aspirasi } from '@/types';
 
 const menuItems = [
   { label: 'Dashboard Desa', icon: faTableCellsLarge, route: '/dashboard' },
-  { label: 'Profil Desa & UMKM', icon: faBuildingColumns, route: '/profil-desa' },
+  { label: 'Profil Desa', icon: faBuildingColumns, route: '/profil-desa' },
   { label: 'Aspirasi Warga', icon: faCommentDots, route: '/aspirasi-warga' },
   { label: 'Whitelist Warga', icon: faShieldHalved, route: '/whitelist-warga' },
   { label: 'Akun Warga', icon: faUsersGear, route: '/akun-warga' },

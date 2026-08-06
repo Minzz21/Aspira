@@ -111,7 +111,7 @@ export default function AspirasiWargaPage() {
       doc.text(`Tanggal Export: ${new Date().toLocaleDateString('id-ID')}`, 14, 22);
       
       const tableData = filteredData.map(item => [
-        item.waktu || 'Baru saja',
+        formatWaktu(item),
         item.nama || item.pelapor || 'Warga',
         item.subjek,
         item.kategori,
@@ -152,8 +152,35 @@ export default function AspirasiWargaPage() {
     return <span className="px-2 py-1 bg-blue-100 text-blue-600 text-[10px] font-bold rounded shadow-sm border border-blue-200">NORMAL</span>;
   };
 
+  const formatWaktu = (item: Aspirasi) => {
+    if (item.createdAt) {
+      try {
+        let date: Date;
+        if (typeof item.createdAt.toDate === 'function') {
+          date = item.createdAt.toDate();
+        } else if (typeof item.createdAt.toMillis === 'function') {
+          date = new Date(item.createdAt.toMillis());
+        } else if (item.createdAt.seconds) {
+          date = new Date(item.createdAt.seconds * 1000);
+        } else {
+          date = new Date(item.createdAt);
+        }
+        
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${day}-${month}-${year} ${hours}:${minutes}`;
+      } catch(e) {
+        return item.waktu || 'Baru saja';
+      }
+    }
+    return item.waktu || 'Baru saja';
+  };
+
   const columns: Column<Aspirasi>[] = [
-    { key: 'waktu', header: 'Waktu', render: (item) => <span className="text-xs text-gray-500 whitespace-nowrap">{item.waktu || 'Baru saja'}</span> },
+    { key: 'waktu', header: 'Waktu', render: (item) => <span className="text-xs text-gray-500 whitespace-nowrap">{formatWaktu(item)}</span> },
     { key: 'pelapor', header: 'Pelapor', render: (item) => <span className="font-semibold text-gray-900">{item.nama || item.pelapor || 'Warga'}</span> },
     { key: 'subjek', header: 'Subjek', render: (item) => <span className="text-gray-700 truncate max-w-[150px] inline-block">{item.subjek}</span> },
     { key: 'kategori', header: 'Kategori', render: (item) => <span className="text-xs font-medium text-gray-600">{item.kategori}</span> },
@@ -461,7 +488,7 @@ export default function AspirasiWargaPage() {
                     </div>
                     <div>
                       <h3 className="font-bold text-gray-900">{selectedAspirasi.nama || selectedAspirasi.pelapor || 'Warga Anonim'}</h3>
-                      <p className="text-xs text-gray-500">{selectedAspirasi.waktu || 'Baru saja'}</p>
+                      <p className="text-xs text-gray-500">{formatWaktu(selectedAspirasi)}</p>
                     </div>
                   </div>
                   <div className="flex gap-2 items-center">
